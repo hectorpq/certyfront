@@ -250,8 +250,8 @@ const TemplatesPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Plantillas</h1>
-          <p className="text-secondary-600">Gestiona las plantillas de certificados</p>
+          <h1 className="text-2xl font-bold text-secondary-900 tracking-tight">Plantillas</h1>
+          <p className="text-sm text-secondary-500 mt-0.5">Gestiona las plantillas de certificados</p>
         </div>
         {isAdmin && (
           <Button onClick={() => openModal()}>
@@ -262,11 +262,13 @@ const TemplatesPage = () => {
       </div>
 
       {templates.length === 0 ? (
-        <Card className="p-8 text-center">
-          <Image className="w-12 h-12 mx-auto text-secondary-300 mb-4" />
-          <p className="text-secondary-600">No hay plantillas disponibles</p>
+        <Card className="py-16 text-center">
+          <Image className="w-12 h-12 mx-auto text-secondary-300 mb-3" />
+          <p className="font-medium text-secondary-700 mb-1">No hay plantillas disponibles</p>
+          <p className="text-sm text-secondary-400 mb-5">Crea tu primera plantilla de certificado</p>
           {isAdmin && (
-            <Button onClick={() => openModal()} className="mt-4">
+            <Button onClick={() => openModal()}>
+              <Plus className="w-4 h-4 mr-2" />
               Crear primera plantilla
             </Button>
           )}
@@ -274,8 +276,8 @@ const TemplatesPage = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {templates.map((template) => (
-            <Card key={template.id} className="p-4">
-              <div className="aspect-video bg-secondary-100 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+            <div key={template.id} className="rounded-2xl border border-secondary-200 bg-white overflow-hidden shadow-[0_1px_4px_0_rgba(0,0,0,0.06)] hover:shadow-md hover:border-primary-200 transition-all">
+              <div className="aspect-video bg-secondary-100 flex items-center justify-center overflow-hidden">
                 {template.background_image_url ? (
                   <img
                     src={template.background_image_url}
@@ -286,30 +288,34 @@ const TemplatesPage = () => {
                   <Image className="w-12 h-12 text-secondary-300" />
                 )}
               </div>
-              <h3 className="font-semibold text-secondary-900">{template.name}</h3>
-              <p className="text-sm text-secondary-500">{template.category || 'Sin categoría'}</p>
-              <div className="flex items-center justify-between mt-3">
-                <Badge variant={template.is_active ? 'success' : 'default'}>
-                  {template.is_active ? 'Activa' : 'Inactiva'}
-                </Badge>
-                {isAdmin && (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => openModal(template)}
-                      className="p-1.5 rounded-lg hover:bg-secondary-100 text-secondary-500"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(template.id)}
-                      className="p-1.5 rounded-lg hover:bg-red-50 text-secondary-500 hover:text-error"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
+              <div className="p-4">
+                <h3 className="font-semibold text-secondary-900 truncate">{template.name}</h3>
+                <p className="text-xs text-secondary-400 mt-0.5">{template.category || 'Sin categoría'}</p>
+                <div className="flex items-center justify-between mt-3">
+                  <Badge variant={template.is_active ? 'success' : 'default'} dot>
+                    {template.is_active ? 'Activa' : 'Inactiva'}
+                  </Badge>
+                  {isAdmin && (
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => openModal(template)}
+                        className="p-1.5 rounded-lg text-secondary-400 hover:text-secondary-700 hover:bg-secondary-100 transition-all"
+                        title="Editar"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(template.id)}
+                        className="p-1.5 rounded-lg text-secondary-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       )}
@@ -350,7 +356,7 @@ const TemplatesPage = () => {
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-1">Color de letra</label>
+              <label className="block text-xs font-semibold text-secondary-600 uppercase tracking-wider mb-1.5">Color de letra</label>
               <input
                 type="color"
                 value={layoutConfig.student_name?.color || '#000000'}
@@ -358,18 +364,18 @@ const TemplatesPage = () => {
                   ...prev,
                   student_name: { ...prev.student_name!, color: e.target.value }
                 }))}
-                className="w-full h-10 rounded border border-secondary-300 cursor-pointer"
+                className="w-full h-10 rounded-lg border border-secondary-200 cursor-pointer"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-1">Tipo de letra</label>
+              <label className="block text-xs font-semibold text-secondary-600 uppercase tracking-wider mb-1.5">Tipo de letra</label>
               <select
                 value={layoutConfig.student_name?.font_family || 'Helvetica'}
                 onChange={(e) => setLayoutConfig((prev) => ({
                   ...prev,
                   student_name: { ...prev.student_name!, font_family: e.target.value }
                 }))}
-                className="w-full h-10 px-2 rounded border border-secondary-300 text-sm"
+                className="w-full h-10 px-3 rounded-lg border border-secondary-200 hover:border-secondary-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500"
               >
                 <option value="Helvetica">Helvetica</option>
                 <option value="Arial">Arial</option>
@@ -379,7 +385,7 @@ const TemplatesPage = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-1">Tamaño</label>
+              <label className="block text-xs font-semibold text-secondary-600 uppercase tracking-wider mb-1.5">Tamaño</label>
               <input
                 type="number"
                 value={layoutConfig.student_name?.font_size || 24}
@@ -387,7 +393,7 @@ const TemplatesPage = () => {
                   ...prev,
                   student_name: { ...prev.student_name!, font_size: parseInt(e.target.value) || 24 }
                 }))}
-                className="w-full h-10 px-2 rounded border border-secondary-300 text-sm"
+                className="w-full h-10 px-3 rounded-lg border border-secondary-200 hover:border-secondary-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500"
                 min={8}
                 max={72}
               />
@@ -395,21 +401,21 @@ const TemplatesPage = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-secondary-700 mb-2">
+            <label className="block text-xs font-semibold text-secondary-600 uppercase tracking-wider mb-1.5">
               Imagen de Fondo
             </label>
             <input
               type="file"
               accept="image/png,image/jpeg"
               onChange={handleImageSelect}
-              className="text-sm text-secondary-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+              className="text-sm text-secondary-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
             />
           </div>
 
           {previewImage && (
             <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">
-                Previsualización - Arrastra el nombre para posicionar
+              <label className="block text-xs font-semibold text-secondary-600 uppercase tracking-wider mb-1.5">
+                Previsualización — arrastra el nombre para posicionar
               </label>
               <div
                 ref={previewRef}

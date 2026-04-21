@@ -127,8 +127,8 @@ export const InstructorsPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Instructores</h1>
-          <p className="text-secondary-600">Gestiona los instructores del sistema</p>
+          <h1 className="text-2xl font-bold text-secondary-900 tracking-tight">Instructores</h1>
+          <p className="text-sm text-secondary-500 mt-0.5">Gestiona los instructores del sistema</p>
         </div>
         {isAdmin && (
           <Button onClick={() => openModal()}>
@@ -149,9 +149,14 @@ export const InstructorsPage = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {isLoading ? (
-            <div className="col-span-full py-8 text-center text-secondary-500">Cargando...</div>
+            <div className="col-span-full py-12 text-center text-secondary-400 text-sm">Cargando...</div>
           ) : filteredInstructors?.length === 0 ? (
-            <div className="col-span-full py-8 text-center text-secondary-500">No hay instructores</div>
+            <div className="col-span-full py-12 text-center">
+              <div className="flex flex-col items-center gap-2 text-secondary-400">
+                <Plus className="w-8 h-8 opacity-40" />
+                <span className="text-sm">No hay instructores registrados</span>
+              </div>
+            </div>
           ) : (
             filteredInstructors?.map((instructor) => (
               <div
@@ -159,21 +164,30 @@ export const InstructorsPage = () => {
                 className="p-4 rounded-xl border border-secondary-200 hover:border-primary-300 hover:shadow-md transition-all"
               >
                 <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h3 className="font-semibold text-secondary-900">{instructor.full_name}</h3>
-                    <p className="text-sm text-secondary-500">{instructor.email}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-sm font-bold">
+                        {instructor.full_name.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-secondary-900 leading-tight">{instructor.full_name}</h3>
+                      <p className="text-xs text-secondary-500">{instructor.email}</p>
+                    </div>
                   </div>
                   {isAdmin && (
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 ml-2">
                       <button
                         onClick={() => openModal(instructor)}
-                        className="p-1.5 rounded-lg hover:bg-secondary-100 text-secondary-500"
+                        className="p-1.5 rounded-lg text-secondary-400 hover:text-secondary-700 hover:bg-secondary-100 transition-all"
+                        title="Editar"
                       >
                         <Pencil className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(instructor.id)}
-                        className="p-1.5 rounded-lg hover:bg-red-50 text-secondary-500 hover:text-error"
+                        className="p-1.5 rounded-lg text-secondary-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                        title="Eliminar"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -181,13 +195,15 @@ export const InstructorsPage = () => {
                   )}
                 </div>
                 {instructor.specialty && (
-                  <p className="text-sm text-primary-600 font-medium mb-2">{instructor.specialty}</p>
+                  <span className="inline-block text-xs font-semibold text-primary-700 bg-primary-50 border border-primary-100 px-2 py-0.5 rounded-full mb-2">
+                    {instructor.specialty}
+                  </span>
                 )}
                 {instructor.bio && (
                   <p className="text-sm text-secondary-600 line-clamp-2">{instructor.bio}</p>
                 )}
                 {instructor.phone && (
-                  <p className="text-sm text-secondary-500 mt-2">{instructor.phone}</p>
+                  <p className="text-xs text-secondary-400 mt-2">{instructor.phone}</p>
                 )}
               </div>
             ))

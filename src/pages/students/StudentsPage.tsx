@@ -133,8 +133,8 @@ export const StudentsPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Estudiantes</h1>
-          <p className="text-secondary-600">Gestiona los estudiantes del sistema</p>
+          <h1 className="text-2xl font-bold text-secondary-900 tracking-tight">Estudiantes</h1>
+          <p className="text-sm text-secondary-500 mt-0.5">Gestiona los estudiantes del sistema</p>
         </div>
         {isAdmin && (
           <div className="flex gap-3">
@@ -162,51 +162,58 @@ export const StudentsPage = () => {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-secondary-200">
-                <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Documento</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Nombre</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Email</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Teléfono</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Estado</th>
-                <th className="text-right py-3 px-4 text-sm font-semibold text-secondary-700">Acciones</th>
+              <tr className="bg-secondary-50 border-y border-secondary-100">
+                <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Documento</th>
+                <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Nombre</th>
+                <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Email</th>
+                <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Teléfono</th>
+                <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Estado</th>
+                <th className="text-right py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-secondary-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-secondary-500">Cargando...</td>
+                  <td colSpan={6} className="py-12 text-center text-secondary-400 text-sm">Cargando...</td>
                 </tr>
               ) : data?.results?.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-secondary-500">No hay estudiantes</td>
+                  <td colSpan={6} className="py-12 text-center">
+                    <div className="flex flex-col items-center gap-2 text-secondary-400">
+                      <Upload className="w-8 h-8 opacity-40" />
+                      <span className="text-sm">No hay estudiantes registrados</span>
+                    </div>
+                  </td>
                 </tr>
               ) : (
                 data?.results?.map((student) => (
-                  <tr key={student.id} className="border-b border-secondary-100 hover:bg-secondary-50">
-                    <td className="py-3 px-4 text-sm text-secondary-900">{student.document_id}</td>
-                    <td className="py-3 px-4 text-sm text-secondary-900">
+                  <tr key={student.id} className="hover:bg-secondary-50/60 transition-colors">
+                    <td className="py-3 px-4 text-sm font-mono text-secondary-700">{student.document_id}</td>
+                    <td className="py-3 px-4 text-sm font-medium text-secondary-900">
                       {student.first_name} {student.last_name}
                     </td>
-                    <td className="py-3 px-4 text-sm text-secondary-600">{student.email}</td>
-                    <td className="py-3 px-4 text-sm text-secondary-600">{student.phone || '-'}</td>
+                    <td className="py-3 px-4 text-sm text-secondary-500">{student.email}</td>
+                    <td className="py-3 px-4 text-sm text-secondary-500">{student.phone || '—'}</td>
                     <td className="py-3 px-4">
-                      <Badge variant={student.is_active ? 'success' : 'error'}>
+                      <Badge variant={student.is_active ? 'success' : 'error'} dot>
                         {student.is_active ? 'Activo' : 'Inactivo'}
                       </Badge>
                     </td>
                     <td className="py-3 px-4">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-1">
                         {isAdmin && (
                           <>
                             <button
                               onClick={() => openModal(student)}
-                              className="p-1.5 rounded-lg hover:bg-secondary-100 text-secondary-500"
+                              className="p-1.5 rounded-lg text-secondary-400 hover:text-secondary-700 hover:bg-secondary-100 transition-all"
+                              title="Editar"
                             >
                               <Pencil className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDelete(student.id)}
-                              className="p-1.5 rounded-lg hover:bg-red-50 text-secondary-500 hover:text-error"
+                              className="p-1.5 rounded-lg text-secondary-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                              title="Eliminar"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>

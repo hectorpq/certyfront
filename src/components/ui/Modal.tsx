@@ -35,20 +35,23 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalPr
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div
-          className="fixed inset-0 bg-black/50 transition-opacity"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
           onClick={onClose}
         />
         <div
-          className={`relative bg-white rounded-xl shadow-xl w-full ${sizes[size]} max-h-[90vh] flex flex-col`}
+          className={`relative bg-white rounded-2xl shadow-2xl w-full ${sizes[size]} max-h-[90vh] flex flex-col overflow-hidden`}
         >
+          {/* Accent line */}
+          <div className="h-1 bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600 flex-shrink-0" />
+
           {title && (
-            <div className="flex items-center justify-between px-6 py-4 border-b border-secondary-200">
-              <h3 className="text-lg font-semibold text-secondary-900">{title}</h3>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-secondary-100 flex-shrink-0">
+              <h3 className="text-base font-bold text-secondary-900 tracking-tight">{title}</h3>
               <button
                 onClick={onClose}
-                className="p-1 rounded-lg hover:bg-secondary-100 transition-colors"
+                className="p-1.5 rounded-lg hover:bg-secondary-100 text-secondary-400 hover:text-secondary-600 transition-all"
               >
-                <X className="w-5 h-5 text-secondary-500" />
+                <X className="w-4 h-4" />
               </button>
             </div>
           )}

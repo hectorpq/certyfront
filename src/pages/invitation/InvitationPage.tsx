@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Button, Input, Alert } from '@/components/ui';
+import { Button, Input, Alert } from '@/components/ui';
 import api from '@/services/api';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -114,104 +114,113 @@ export const InvitationPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-secondary-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-primary-700 via-primary-600 to-primary-500 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white/70"></div>
       </div>
     );
   }
 
   if (error && !invitation) {
     return (
-      <div className="min-h-screen bg-secondary-50 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full text-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary-700 via-primary-600 to-primary-500 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
+          <div className="h-1 bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600 -mx-8 -mt-8 mb-8 rounded-t-2xl" />
           <Alert type="error">{error}</Alert>
-          <Button onClick={() => navigate('/')} className="mt-4">
+          <Button onClick={() => navigate('/')} className="mt-4 w-full">
             Volver al inicio
           </Button>
-        </Card>
+        </div>
       </div>
     );
   }
 
   if (!invitation) {
     return (
-      <div className="min-h-screen bg-secondary-50 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full text-center">
-          <Alert type="error">Cargando invitación...</Alert>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-primary-700 via-primary-600 to-primary-500 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
+          <p className="text-secondary-500 text-sm">Cargando invitación...</p>
+        </div>
       </div>
     );
   }
 
-  // Check if user is logged in and matches the invitation email
   const isLoggedInUser = isAuthenticated && user?.email?.toLowerCase() === invitation.email.toLowerCase();
 
   return (
-    <div className="min-h-screen bg-secondary-50 flex items-center justify-center p-4">
-      <Card className="max-w-lg w-full">
+    <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-primary-500">
+      <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-white/5 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-white/5 blur-3xl pointer-events-none" />
+
+      <div className="w-full max-w-lg relative z-10">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-secondary-900">Invitación al Evento</h1>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Invitación al Evento</h1>
+          <p className="text-primary-200 text-sm mt-1">Has recibido una invitación especial</p>
         </div>
 
-        <div className="bg-primary-50 rounded-lg p-4 mb-6">
-          <h2 className="text-xl font-semibold text-primary-900">{invitation.event_name}</h2>
-          <div className="mt-2 text-sm text-primary-700 space-y-1">
-            <p><strong>Fecha:</strong> {new Date(invitation.event_date).toLocaleDateString('es-ES')}</p>
-            {invitation.event_location && <p><strong>Ubicación:</strong> {invitation.event_location}</p>}
-            {invitation.event_description && <p><strong>Descripción:</strong> {invitation.event_description}</p>}
-          </div>
-        </div>
+        <div className="bg-white rounded-2xl shadow-2xl shadow-primary-900/30 border border-white/50 overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600" />
+          <div className="p-8">
+            <div className="bg-gradient-to-br from-primary-50 to-primary-100/60 border border-primary-100 rounded-xl p-4 mb-6">
+              <h2 className="text-lg font-bold text-primary-900 mb-2">{invitation.event_name}</h2>
+              <div className="text-sm text-primary-700 space-y-1">
+                <p><span className="font-semibold">Fecha:</span> {new Date(invitation.event_date).toLocaleDateString('es-ES')}</p>
+                {invitation.event_location && <p><span className="font-semibold">Ubicación:</span> {invitation.event_location}</p>}
+                {invitation.event_description && <p><span className="font-semibold">Descripción:</span> {invitation.event_description}</p>}
+              </div>
+            </div>
 
-        {error && (
-          <Alert type="error" className="mb-4">{error}</Alert>
-        )}
+            {error && (
+              <Alert type="error" className="mb-4">{error}</Alert>
+            )}
 
-        {invitation.status === 'accepted' ? (
-          <div className="text-center">
-            <Alert type="info">Esta invitación ya fue aceptada. Ya estás inscrito en el evento.</Alert>
-            <Button onClick={() => navigate('/dashboard')} className="mt-4">
-              Ir a Mis Eventos
-            </Button>
-          </div>
-        ) : invitation.status === 'expired' ? (
-          <div className="text-center">
-            <Alert type="error">Esta invitación ha expirado.</Alert>
-          </div>
-        ) : invitation.student_exists && isLoggedInUser ? (
-          <div className="text-center">
-            <p className="text-secondary-600 mb-4">
-              ¡Bienvenido! Has sido invitado a este evento. Haz clic en aceptar para inscribirte.
-            </p>
-            <Button onClick={handleAccept} isLoading={isRegistering}>
-              Aceptar Invitación
-            </Button>
-          </div>
-        ) : invitation.student_exists ? (
+            {invitation.status === 'accepted' ? (
               <div className="text-center">
-                <p className="text-secondary-600 mb-4">
+                <Alert type="info">Esta invitación ya fue aceptada. Ya estás inscrito en el evento.</Alert>
+                <Button onClick={() => navigate('/dashboard')} className="mt-4 w-full" size="lg">
+                  Ir a Mis Eventos
+                </Button>
+              </div>
+            ) : invitation.status === 'expired' ? (
+              <div className="text-center">
+                <Alert type="error">Esta invitación ha expirado.</Alert>
+              </div>
+            ) : invitation.student_exists && isLoggedInUser ? (
+              <div className="text-center">
+                <p className="text-secondary-600 text-sm mb-5">
+                  ¡Bienvenido! Has sido invitado a este evento. Haz clic en aceptar para inscribirte.
+                </p>
+                <Button onClick={handleAccept} isLoading={isRegistering} className="w-full" size="lg">
+                  Aceptar Invitación
+                </Button>
+              </div>
+            ) : invitation.student_exists ? (
+              <div className="text-center">
+                <p className="text-secondary-600 text-sm mb-5">
                   Has sido invitado a este evento. Haz clic en aceptar para inscribirte.
                 </p>
-                <Button onClick={handleAccept} isLoading={isRegistering}>
+                <Button onClick={handleAccept} isLoading={isRegistering} className="w-full" size="lg">
                   Aceptar Invitación
                 </Button>
               </div>
             ) : (
               <form onSubmit={handleRegister} className="space-y-4">
-                <p className="text-secondary-600 mb-4">
-                  Para aceptar esta invitación, por favor completa tu registro:
+                <p className="text-secondary-600 text-sm mb-2">
+                  Para aceptar esta invitación, completa tu registro:
                 </p>
-                <Input
-                  label="Nombre"
-                  value={formData.first_name}
-                  onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                  required
-                />
-                <Input
-                  label="Apellido"
-                  value={formData.last_name}
-                  onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                  required
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <Input
+                    label="Nombre"
+                    value={formData.first_name}
+                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                    required
+                  />
+                  <Input
+                    label="Apellido"
+                    value={formData.last_name}
+                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                    required
+                  />
+                </div>
                 <Input
                   label="Teléfono"
                   type="tel"
@@ -234,12 +243,18 @@ export const InvitationPage = () => {
                   required
                   minLength={8}
                 />
-                <Button type="submit" className="w-full" isLoading={isRegistering}>
+                <Button type="submit" className="w-full" size="lg" isLoading={isRegistering}>
                   Registrarme y Aceptar Invitación
                 </Button>
               </form>
             )}
-      </Card>
+          </div>
+        </div>
+
+        <p className="text-center text-primary-200/70 text-xs mt-6">
+          © 2026 CertyPro · Todos los derechos reservados
+        </p>
+      </div>
     </div>
   );
 };

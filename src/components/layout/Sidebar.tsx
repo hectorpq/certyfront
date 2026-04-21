@@ -9,6 +9,8 @@ import {
   LogOut,
   Menu,
   LayoutTemplate,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -35,77 +37,97 @@ export const Sidebar = () => {
 
   const navItems = isAdmin ? adminNavItems : participanteNavItems;
 
+  const initials = user?.full_name
+    ? user.full_name.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase()
+    : '?';
+
   const NavContent = () => (
-    <>
-      <div className="p-4 border-b border-secondary-200">
+    <div className="flex flex-col h-full">
+      {/* Logo */}
+      <div className="px-4 py-5 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-primary-500 flex items-center justify-center">
-            <Award className="w-6 h-6 text-white" />
+          <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center flex-shrink-0 shadow-inner">
+            <Award className="w-5 h-5 text-white" />
           </div>
           {!isCollapsed && (
             <div>
-              <h1 className="font-bold text-primary-900">CertyPro</h1>
-              <p className="text-xs text-secondary-500">Sistema de Certificados</p>
+              <h1 className="font-bold text-white text-sm tracking-wide">CertyPro</h1>
+              <p className="text-xs text-primary-200/80">Sistema de Certificados</p>
             </div>
           )}
         </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1">
+      {/* Nav */}
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {navItems.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 ${
                 isActive
-                  ? 'bg-primary-500 text-white'
-                  : 'text-secondary-600 hover:bg-secondary-100'
+                  ? 'bg-white/20 text-white shadow-sm'
+                  : 'text-primary-100 hover:bg-white/10 hover:text-white'
               }`
             }
             onClick={() => setIsMobileOpen(false)}
           >
-            <Icon className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && <span className="font-medium">{label}</span>}
+            <Icon className="w-4.5 h-4.5 flex-shrink-0 w-[18px] h-[18px]" />
+            {!isCollapsed && (
+              <span className="text-sm font-medium tracking-tight">{label}</span>
+            )}
           </NavLink>
         ))}
       </nav>
 
-      <div className="p-4 border-t border-secondary-200">
+      {/* User section */}
+      <div className="px-3 py-4 border-t border-white/10">
         {user && !isCollapsed && (
-          <div className="mb-3 px-3">
-            <p className="font-medium text-secondary-900 truncate">{user.full_name}</p>
-            <p className="text-xs text-secondary-500 truncate">{user.email}</p>
-            <span className={`inline-block mt-1 px-2 py-0.5 text-xs rounded ${
-              isAdmin ? 'bg-primary-100 text-primary-700' : 'bg-secondary-100 text-secondary-600'
-            }`}>
-              {isAdmin ? 'Administrador' : 'Participante'}
-            </span>
+          <div className="mb-3 flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/10">
+            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+              <span className="text-xs font-bold text-white">{initials}</span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-white truncate leading-tight">
+                {user.full_name}
+              </p>
+              <p className="text-xs text-primary-200/80 truncate">{user.email}</p>
+            </div>
+          </div>
+        )}
+        {user && isCollapsed && (
+          <div className="mb-3 flex justify-center">
+            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+              <span className="text-xs font-bold text-white">{initials}</span>
+            </div>
           </div>
         )}
         <button
           onClick={logout}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-secondary-600 hover:bg-secondary-100 transition-colors"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-primary-100 hover:bg-white/10 hover:text-white transition-all duration-150"
         >
-          <LogOut className="w-5 h-5" />
-          {!isCollapsed && <span className="font-medium">Cerrar Sesión</span>}
+          <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
+          {!isCollapsed && <span className="text-sm font-medium">Cerrar Sesión</span>}
         </button>
       </div>
-    </>
+    </div>
   );
 
   return (
     <>
+      {/* Mobile toggle */}
       <button
         onClick={() => setIsMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-primary-500 text-white rounded-lg"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-gradient-to-br from-primary-500 to-primary-600 text-white rounded-xl shadow-lg"
       >
-        <Menu className="w-6 h-6" />
+        <Menu className="w-5 h-5" />
       </button>
 
+      {/* Mobile overlay */}
       {isMobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
@@ -113,18 +135,24 @@ export const Sidebar = () => {
       <aside
         className={`
           fixed lg:static inset-y-0 left-0 z-50
-          bg-white border-r border-secondary-200
+          bg-gradient-to-b from-primary-600 via-primary-700 to-primary-800
           transition-all duration-300 flex flex-col
-          ${isCollapsed ? 'w-20' : 'w-64'}
+          ${isCollapsed ? 'w-[68px]' : 'w-64'}
           ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
+        {/* Collapse toggle */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="hidden lg:flex absolute -right-3 top-6 w-6 h-6 bg-white border border-secondary-200 rounded-full items-center justify-center text-secondary-500 hover:text-secondary-700"
+          className="hidden lg:flex absolute -right-3 top-7 w-6 h-6 bg-white border border-secondary-200 rounded-full items-center justify-center text-secondary-500 hover:text-primary-600 shadow-sm transition-colors z-10"
         >
-          {isCollapsed ? '›' : '‹'}
+          {isCollapsed ? (
+            <ChevronRight className="w-3.5 h-3.5" />
+          ) : (
+            <ChevronLeft className="w-3.5 h-3.5" />
+          )}
         </button>
+
         <NavContent />
       </aside>
     </>

@@ -88,8 +88,8 @@ export const CertificatesPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Certificados</h1>
-          <p className="text-secondary-600">Gestiona los certificados del sistema</p>
+          <h1 className="text-2xl font-bold text-secondary-900 tracking-tight">Certificados</h1>
+          <p className="text-sm text-secondary-500 mt-0.5">Gestiona los certificados del sistema</p>
         </div>
       </div>
 
@@ -111,14 +111,19 @@ export const CertificatesPage = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {isLoading ? (
-            <div className="col-span-full py-8 text-center text-secondary-500">Cargando...</div>
+            <div className="col-span-full py-12 text-center text-secondary-400 text-sm">Cargando...</div>
           ) : data?.results?.length === 0 ? (
-            <div className="col-span-full py-8 text-center text-secondary-500">No hay certificados</div>
+            <div className="col-span-full py-12 text-center">
+              <div className="flex flex-col items-center gap-2 text-secondary-400">
+                <FileText className="w-8 h-8 opacity-40" />
+                <span className="text-sm">No hay certificados</span>
+              </div>
+            </div>
           ) : (
             data?.results?.map((cert) => (
               <div
                 key={cert.id}
-                className="p-4 rounded-xl border border-secondary-200 hover:border-primary-300 hover:shadow-md transition-all cursor-pointer"
+                className="p-4 rounded-xl border border-secondary-200 hover:border-primary-400 hover:shadow-md transition-all cursor-pointer group"
                 onClick={() => openDetail(cert)}
               >
                 <div className="aspect-[1.4/1] bg-secondary-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
@@ -126,7 +131,7 @@ export const CertificatesPage = () => {
                     <img
                       src={cert.pdf_url}
                       alt="Certificate preview"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-200"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = 'none';
                         (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
@@ -137,10 +142,12 @@ export const CertificatesPage = () => {
                 </div>
                 <div className="flex items-center justify-between mb-2">
                   {getStatusBadge(cert.status)}
-                  <span className="text-xs text-secondary-500 font-mono">{cert.verification_code.slice(0, 8)}...</span>
+                  <span className="text-xs text-secondary-400 font-mono bg-secondary-100 px-1.5 py-0.5 rounded">
+                    {cert.verification_code.slice(0, 8)}…
+                  </span>
                 </div>
                 <h3 className="font-semibold text-secondary-900 truncate">{cert.student.full_name}</h3>
-                <p className="text-sm text-secondary-600 truncate">{cert.event.name}</p>
+                <p className="text-sm text-secondary-500 truncate">{cert.event.name}</p>
                 <p className="text-xs text-secondary-400 mt-1">
                   {new Date(cert.issued_at).toLocaleDateString('es-ES')}
                 </p>

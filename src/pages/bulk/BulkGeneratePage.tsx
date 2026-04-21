@@ -56,31 +56,31 @@ export const BulkGeneratePage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Generación Masiva</h1>
-          <p className="text-secondary-600">Genera certificados desde un archivo Excel</p>
+          <h1 className="text-2xl font-bold text-secondary-900 tracking-tight">Generación Masiva</h1>
+          <p className="text-sm text-secondary-500 mt-0.5">Genera certificados desde un archivo Excel</p>
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-4">
-        <div className={`flex items-center gap-2 ${step === 'upload' ? 'text-primary-500' : 'text-secondary-500'}`}>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 'upload' ? 'bg-primary-500 text-white' : 'bg-success text-white'}`}>
-            {step !== 'upload' ? <CheckCircle className="w-5 h-5" /> : '1'}
+      <div className="flex items-center justify-center gap-3">
+        <div className={`flex items-center gap-2 ${step === 'upload' ? 'text-primary-600' : 'text-secondary-400'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${step === 'upload' ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white' : 'bg-emerald-500 text-white'}`}>
+            {step !== 'upload' ? <CheckCircle className="w-4 h-4" /> : '1'}
           </div>
-          <span className="font-medium">Subir Archivo</span>
+          <span className="text-sm font-semibold">Subir Archivo</span>
         </div>
-        <ArrowRight className="w-5 h-5 text-secondary-300" />
-        <div className={`flex items-center gap-2 ${step === 'preview' ? 'text-primary-500' : step === 'result' ? 'text-success' : 'text-secondary-500'}`}>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 'preview' ? 'bg-primary-500 text-white' : step === 'result' ? 'bg-success text-white' : 'bg-secondary-200'}`}>
-            {step === 'result' ? <CheckCircle className="w-5 h-5" /> : '2'}
+        <ArrowRight className="w-4 h-4 text-secondary-300" />
+        <div className={`flex items-center gap-2 ${step === 'preview' ? 'text-primary-600' : step === 'result' ? 'text-secondary-400' : 'text-secondary-400'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${step === 'preview' ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white' : step === 'result' ? 'bg-emerald-500 text-white' : 'bg-secondary-200 text-secondary-500'}`}>
+            {step === 'result' ? <CheckCircle className="w-4 h-4" /> : '2'}
           </div>
-          <span className="font-medium">Revisar Datos</span>
+          <span className="text-sm font-semibold">Revisar Datos</span>
         </div>
-        <ArrowRight className="w-5 h-5 text-secondary-300" />
-        <div className={`flex items-center gap-2 ${step === 'result' ? 'text-primary-500' : 'text-secondary-500'}`}>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 'result' ? 'bg-primary-500 text-white' : 'bg-secondary-200'}`}>
+        <ArrowRight className="w-4 h-4 text-secondary-300" />
+        <div className={`flex items-center gap-2 ${step === 'result' ? 'text-primary-600' : 'text-secondary-400'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${step === 'result' ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white' : 'bg-secondary-200 text-secondary-500'}`}>
             3
           </div>
-          <span className="font-medium">Resultados</span>
+          <span className="text-sm font-semibold">Resultados</span>
         </div>
       </div>
 
@@ -145,22 +145,22 @@ export const BulkGeneratePage = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-secondary-200 bg-secondary-50">
-                    <th className="text-left py-2 px-3 font-semibold text-secondary-700">#</th>
+                  <tr className="bg-secondary-50 border-y border-secondary-100">
+                    <th className="text-left py-2.5 px-3 text-xs font-semibold text-secondary-500 uppercase tracking-wider">#</th>
                     {previewData.columns.map((col) => (
-                      <th key={col} className="text-left py-2 px-3 font-semibold text-secondary-700 capitalize">
+                      <th key={col} className="text-left py-2.5 px-3 text-xs font-semibold text-secondary-500 uppercase tracking-wider">
                         {col.replace(/_/g, ' ')}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-secondary-100">
                   {previewData.data.slice(0, 20).map((row, idx) => (
-                    <tr key={idx} className="border-b border-secondary-100">
-                      <td className="py-2 px-3 text-secondary-500">{idx + 1}</td>
+                    <tr key={idx} className="hover:bg-secondary-50/60 transition-colors">
+                      <td className="py-2.5 px-3 text-secondary-400 text-xs">{idx + 1}</td>
                       {previewData.columns.map((col) => (
-                        <td key={col} className="py-2 px-3 text-secondary-900">
-                          {String(row[col] || '-')}
+                        <td key={col} className="py-2.5 px-3 text-secondary-800">
+                          {String(row[col] || '—')}
                         </td>
                       ))}
                     </tr>

@@ -1,4 +1,4 @@
-import { Award, Users, Calendar, Clock, CheckCircle, XCircle, FileSpreadsheet, Plus } from 'lucide-react';
+import { Award, Users, Calendar, Clock, CheckCircle, XCircle, FileSpreadsheet, Plus, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, Button, Badge } from '@/components/ui';
 import { useCertificates } from '@/hooks/useCertificates';
@@ -15,19 +15,35 @@ export const DashboardPage = () => {
       label: 'Total Certificados',
       value: certificatesData?.count || 0,
       icon: Award,
-      color: 'bg-blue-500',
+      gradient: 'from-blue-500 to-blue-600',
+      bg: 'bg-blue-50',
+      text: 'text-blue-600',
     },
     {
       label: 'Estudiantes',
       value: studentsData?.count || 0,
       icon: Users,
-      color: 'bg-emerald-500',
+      gradient: 'from-emerald-500 to-emerald-600',
+      bg: 'bg-emerald-50',
+      text: 'text-emerald-600',
     },
     {
       label: 'Eventos Activos',
       value: eventsData?.count || 0,
       icon: Calendar,
-      color: 'bg-purple-500',
+      gradient: 'from-violet-500 to-violet-600',
+      bg: 'bg-violet-50',
+      text: 'text-violet-600',
+    },
+    {
+      label: 'Tasa de Éxito',
+      value: certificatesData?.count
+        ? `${Math.round(((certificatesData.results?.filter(c => c.status === 'sent').length || 0) / certificatesData.count) * 100)}%`
+        : '—',
+      icon: TrendingUp,
+      gradient: 'from-amber-500 to-orange-500',
+      bg: 'bg-amber-50',
+      text: 'text-amber-600',
     },
   ];
 
@@ -42,114 +58,80 @@ export const DashboardPage = () => {
     { pending: 0, generated: 0, sent: 0, failed: 0 }
   ) || { pending: 0, generated: 0, sent: 0, failed: 0 };
 
+  const total = certificatesData?.count || 0;
+
+  const statusRows = [
+    { label: 'Pendientes', icon: Clock, color: 'bg-amber-500', count: statusStats.pending },
+    { label: 'Generados', icon: CheckCircle, color: 'bg-emerald-500', count: statusStats.generated },
+    { label: 'Enviados', icon: FileSpreadsheet, color: 'bg-blue-500', count: statusStats.sent },
+    { label: 'Fallidos', icon: XCircle, color: 'bg-red-500', count: statusStats.failed },
+  ];
+
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Dashboard</h1>
-          <p className="text-secondary-600">Resumen de tu sistema de certificados</p>
+          <h1 className="text-2xl font-bold text-secondary-900 tracking-tight">Dashboard</h1>
+          <p className="text-sm text-secondary-500 mt-0.5">Resumen de tu sistema de certificados</p>
         </div>
         <Link to="/bulk-generate">
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
+          <Button size="md">
+            <Plus className="w-4 h-4" />
             Generar Certificados
           </Button>
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map(({ label, value, icon: Icon, color }) => (
-          <Card key={label} className="!p-0">
-            <div className="flex items-center p-6">
-              <div className={`${color} p-3 rounded-xl mr-4`}>
-                <Icon className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-secondary-900">{value}</p>
-                <p className="text-sm text-secondary-500">{label}</p>
-              </div>
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {stats.map(({ label, value, icon: Icon, gradient }) => (
+          <div
+            key={label}
+            className="bg-white rounded-2xl border border-secondary-100 p-5 shadow-[0_1px_4px_0_rgba(0,0,0,0.06),0_4px_16px_0_rgba(0,0,0,0.06)] flex items-center gap-4"
+          >
+            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-md flex-shrink-0`}>
+              <Icon className="w-6 h-6 text-white" />
             </div>
-          </Card>
+            <div>
+              <p className="text-2xl font-bold text-secondary-900 leading-none">{value}</p>
+              <p className="text-xs font-medium text-secondary-500 mt-1">{label}</p>
+            </div>
+          </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card title="Estado de Certificados" subtitle="Distribución por estado">
+      {/* Bottom cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Certificate status */}
+        <Card title="Estado de Certificados" subtitle="Distribución por estado actual">
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-amber-500" />
-                <span className="text-sm font-medium text-secondary-700">Pendientes</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-32 h-2 bg-secondary-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-amber-500 rounded-full"
-                    style={{
-                      width: `${certificatesData?.count ? (statusStats.pending / certificatesData.count) * 100 : 0}%`,
-                    }}
-                  />
+            {statusRows.map(({ label, icon: Icon, color, count }) => {
+              const pct = total ? Math.round((count / total) * 100) : 0;
+              return (
+                <div key={label} className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-lg ${color} bg-opacity-10 flex items-center justify-center flex-shrink-0`}>
+                    <Icon className={`w-4 h-4 ${color.replace('bg-', 'text-')}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium text-secondary-700">{label}</span>
+                      <span className="text-sm font-bold text-secondary-900 tabular-nums">{count}</span>
+                    </div>
+                    <div className="h-1.5 bg-secondary-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${color} rounded-full transition-all duration-500`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <span className="text-sm font-semibold text-secondary-900">{statusStats.pending}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-emerald-500" />
-                <span className="text-sm font-medium text-secondary-700">Generados</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-32 h-2 bg-secondary-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-emerald-500 rounded-full"
-                    style={{
-                      width: `${certificatesData?.count ? (statusStats.generated / certificatesData.count) * 100 : 0}%`,
-                    }}
-                  />
-                </div>
-                <span className="text-sm font-semibold text-secondary-900">{statusStats.generated}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FileSpreadsheet className="w-5 h-5 text-blue-500" />
-                <span className="text-sm font-medium text-secondary-700">Enviados</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-32 h-2 bg-secondary-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-blue-500 rounded-full"
-                    style={{
-                      width: `${certificatesData?.count ? (statusStats.sent / certificatesData.count) * 100 : 0}%`,
-                    }}
-                  />
-                </div>
-                <span className="text-sm font-semibold text-secondary-900">{statusStats.sent}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <XCircle className="w-5 h-5 text-red-500" />
-                <span className="text-sm font-medium text-secondary-700">Fallidos</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-32 h-2 bg-secondary-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-red-500 rounded-full"
-                    style={{
-                      width: `${certificatesData?.count ? (statusStats.failed / certificatesData.count) * 100 : 0}%`,
-                    }}
-                  />
-                </div>
-                <span className="text-sm font-semibold text-secondary-900">{statusStats.failed}</span>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </Card>
 
+        {/* Recent events */}
         <Card
           title="Eventos Recientes"
           subtitle="Eventos activos y próximos"
@@ -159,31 +141,49 @@ export const DashboardPage = () => {
             </Link>
           }
         >
-          <div className="space-y-3">
+          <div className="space-y-2">
             {eventsData?.results?.slice(0, 5).map((event) => (
               <div
                 key={event.id}
-                className="flex items-center justify-between p-3 rounded-lg bg-secondary-50"
+                className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-secondary-50 hover:bg-secondary-100 transition-colors"
               >
-                <div>
-                  <p className="font-medium text-secondary-900">{event.name}</p>
-                  <p className="text-sm text-secondary-500">
-                    {new Date(event.event_date).toLocaleDateString('es-ES')}
+                <div className="min-w-0 mr-3">
+                  <p className="text-sm font-semibold text-secondary-900 truncate">{event.name}</p>
+                  <p className="text-xs text-secondary-500 mt-0.5">
+                    {new Date(event.event_date).toLocaleDateString('es-ES', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
                   </p>
                 </div>
                 <Badge
+                  dot
                   variant={
-                    event.status === 'active' ? 'success' :
-                    event.status === 'draft' ? 'warning' :
-                    event.status === 'finished' ? 'default' : 'error'
+                    event.status === 'active'
+                      ? 'success'
+                      : event.status === 'draft'
+                      ? 'warning'
+                      : event.status === 'finished'
+                      ? 'default'
+                      : 'error'
                   }
                 >
-                  {event.status}
+                  {event.status === 'active'
+                    ? 'Activo'
+                    : event.status === 'draft'
+                    ? 'Borrador'
+                    : event.status === 'finished'
+                    ? 'Finalizado'
+                    : 'Cancelado'}
                 </Badge>
               </div>
             ))}
             {(!eventsData?.results || eventsData.results.length === 0) && (
-              <p className="text-center text-secondary-500 py-4">No hay eventos activos</p>
+              <div className="text-center py-8">
+                <Calendar className="w-10 h-10 text-secondary-300 mx-auto mb-2" />
+                <p className="text-sm text-secondary-500">No hay eventos activos</p>
+              </div>
             )}
           </div>
         </Card>

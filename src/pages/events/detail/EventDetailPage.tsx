@@ -388,35 +388,21 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
         )}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-        <Card className="p-4 text-center">
-          <div className="text-2xl font-bold text-primary-600">{stats.total_enrollments}</div>
-          <div className="text-sm text-secondary-600">Inscripciones</div>
-        </Card>
-        <Card className="p-4 text-center">
-          <div className="text-2xl font-bold text-green-600">{stats.attendees}</div>
-          <div className="text-sm text-secondary-600">Asistentes</div>
-        </Card>
-        <Card className="p-4 text-center">
-          <div className="text-2xl font-bold text-blue-600">{stats.total_certificates}</div>
-          <div className="text-sm text-secondary-600">Certificados</div>
-        </Card>
-        <Card className="p-4 text-center">
-          <div className="text-2xl font-bold text-yellow-600">{stats.generated_certificates}</div>
-          <div className="text-sm text-secondary-600">Generados</div>
-        </Card>
-        <Card className="p-4 text-center">
-          <div className="text-2xl font-bold text-purple-600">{stats.sent_certificates}</div>
-          <div className="text-sm text-secondary-600">Enviados</div>
-        </Card>
-        <Card className="p-4 text-center">
-          <div className="text-2xl font-bold text-orange-600">{stats.pending_certificates}</div>
-          <div className="text-sm text-secondary-600">Pendientes</div>
-        </Card>
-        <Card className="p-4 text-center">
-          <div className="text-2xl font-bold text-red-600">{stats.failed_certificates}</div>
-          <div className="text-sm text-secondary-600">Fallidos</div>
-        </Card>
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+        {[
+          { value: stats.total_enrollments, label: 'Inscripciones', color: 'text-primary-600', bg: 'bg-primary-50' },
+          { value: stats.attendees, label: 'Asistentes', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { value: stats.total_certificates, label: 'Certificados', color: 'text-blue-600', bg: 'bg-blue-50' },
+          { value: stats.generated_certificates, label: 'Generados', color: 'text-amber-600', bg: 'bg-amber-50' },
+          { value: stats.sent_certificates, label: 'Enviados', color: 'text-violet-600', bg: 'bg-violet-50' },
+          { value: stats.pending_certificates, label: 'Pendientes', color: 'text-orange-600', bg: 'bg-orange-50' },
+          { value: stats.failed_certificates, label: 'Fallidos', color: 'text-red-600', bg: 'bg-red-50' },
+        ].map(({ value, label, color, bg }) => (
+          <div key={label} className="rounded-2xl bg-white border border-secondary-100 shadow-[0_1px_4px_0_rgba(0,0,0,0.06)] p-4 text-center">
+            <div className={`text-2xl font-bold ${color}`}>{value}</div>
+            <div className={`text-xs font-semibold mt-1 px-2 py-0.5 rounded-full inline-block ${bg} ${color}`}>{label}</div>
+          </div>
+        ))}
       </div>
 
       {sendResult && (
@@ -428,52 +414,27 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
       )}
 
       <Card>
-        <div className="border-b border-secondary-200">
-          <nav className="flex gap-8 px-6">
-            <button
-              onClick={() => setActiveTab('participants')}
-              className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'participants'
-                  ? 'border-primary-600 text-primary-600'
-                  : 'border-transparent text-secondary-600 hover:text-secondary-900'
-              }`}
-            >
-              <Users className="w-4 h-4 inline mr-2" />
-              Participantes ({stats.total_enrollments})
-            </button>
-            <button
-              onClick={() => setActiveTab('invitations')}
-              className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'invitations'
-                  ? 'border-primary-600 text-primary-600'
-                  : 'border-transparent text-secondary-600 hover:text-secondary-900'
-              }`}
-            >
-              <Mail className="w-4 h-4 inline mr-2" />
-              Invitaciones
-            </button>
-            <button
-              onClick={() => setActiveTab('certificates')}
-              className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'certificates'
-                  ? 'border-primary-600 text-primary-600'
-                  : 'border-transparent text-secondary-600 hover:text-secondary-900'
-              }`}
-            >
-              <FileText className="w-4 h-4 inline mr-2" />
-              Certificados ({stats.total_certificates})
-            </button>
-            <button
-              onClick={() => setActiveTab('deliveries')}
-              className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'deliveries'
-                  ? 'border-primary-600 text-primary-600'
-                  : 'border-transparent text-secondary-600 hover:text-secondary-900'
-              }`}
-            >
-              <Send className="w-4 h-4 inline mr-2" />
-              Envíos
-            </button>
+        <div className="border-b border-secondary-100">
+          <nav className="flex gap-1 px-4 pt-1">
+            {([
+              { key: 'participants', icon: Users, label: `Participantes (${stats.total_enrollments})` },
+              { key: 'invitations', icon: Mail, label: 'Invitaciones' },
+              { key: 'certificates', icon: FileText, label: `Certificados (${stats.total_certificates})` },
+              { key: 'deliveries', icon: Send, label: 'Envíos' },
+            ] as const).map(({ key, icon: Icon, label }) => (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key)}
+                className={`flex items-center gap-1.5 py-3.5 px-3 border-b-2 text-sm font-semibold transition-all ${
+                  activeTab === key
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-secondary-500 hover:text-secondary-800 hover:border-secondary-200'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {label}
+              </button>
+            ))}
           </nav>
         </div>
 
@@ -522,8 +483,8 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-secondary-200">
-                      <th className="text-left py-3 px-4 w-12">
+                    <tr className="bg-secondary-50 border-y border-secondary-100">
+                      <th className="text-left py-2.5 px-4 w-12">
                         <input
                           type="checkbox"
                           checked={selectedParticipants.length === participants.length && participants.length > 0}
@@ -531,23 +492,23 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
                           className="rounded border-secondary-300"
                         />
                       </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Nombre</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Email</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Teléfono</th>
-                      <th className="text-center py-3 px-4 text-sm font-semibold text-secondary-700">Asistencia</th>
-                      <th className="text-center py-3 px-4 text-sm font-semibold text-secondary-700">Certificado</th>
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Nombre</th>
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Email</th>
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Teléfono</th>
+                      <th className="text-center py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Asistencia</th>
+                      <th className="text-center py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Certificado</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-secondary-100">
                     {participants.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="py-8 text-center text-secondary-500">
+                        <td colSpan={6} className="py-12 text-center text-secondary-400 text-sm">
                           No hay participantes inscritos
                         </td>
                       </tr>
                     ) : (
                       participants.map((participant) => (
-                        <tr key={participant.enrollment_id} className="border-b border-secondary-100 hover:bg-secondary-50">
+                        <tr key={participant.enrollment_id} className="hover:bg-secondary-50/60 transition-colors">
                           <td className="py-3 px-4">
                             <input
                               type="checkbox"
@@ -628,23 +589,23 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-secondary-200">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Participante</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Estado</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Código</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Acciones</th>
+                    <tr className="bg-secondary-50 border-y border-secondary-100">
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Participante</th>
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Estado</th>
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Código</th>
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Acciones</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-secondary-100">
                     {participants.filter(p => p.has_certificate).length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="py-8 text-center text-secondary-500">
+                        <td colSpan={4} className="py-12 text-center text-secondary-400 text-sm">
                           No hay certificados generados
                         </td>
                       </tr>
                     ) : (
                       participants.filter(p => p.has_certificate).map((participant) => (
-                        <tr key={participant.certificate_id} className="border-b border-secondary-100">
+                        <tr key={participant.certificate_id} className="hover:bg-secondary-50/60 transition-colors">
                           <td className="py-3 px-4 text-sm font-medium text-secondary-900">
                             {participant.student_name}
                           </td>
@@ -696,24 +657,24 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-secondary-200">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Fecha</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Destinatario</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Método</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Estado</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Error</th>
+                    <tr className="bg-secondary-50 border-y border-secondary-100">
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Fecha</th>
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Destinatario</th>
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Método</th>
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Estado</th>
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Error</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-secondary-100">
                     {deliveries.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="py-8 text-center text-secondary-500">
+                        <td colSpan={5} className="py-12 text-center text-secondary-400 text-sm">
                           No hay envíos registrados
                         </td>
                       </tr>
                     ) : (
                       deliveries.map((delivery) => (
-                        <tr key={delivery.id} className="border-b border-secondary-100">
+                        <tr key={delivery.id} className="hover:bg-secondary-50/60 transition-colors">
                           <td className="py-3 px-4 text-sm text-secondary-600">
                             {new Date(delivery.sent_at).toLocaleString('es-ES')}
                           </td>
@@ -774,24 +735,24 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-secondary-200">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Email</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Estudiante</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Estado</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Enviado</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Expira</th>
+                    <tr className="bg-secondary-50 border-y border-secondary-100">
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Email</th>
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Estudiante</th>
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Estado</th>
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Enviado</th>
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Expira</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-secondary-100">
                     {invitations.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="py-8 text-center text-secondary-500">
+                        <td colSpan={5} className="py-12 text-center text-secondary-400 text-sm">
                           No hay invitaciones
                         </td>
                       </tr>
                     ) : (
                       invitations.map((inv) => (
-                        <tr key={inv.id} className="border-b border-secondary-100">
+                        <tr key={inv.id} className="hover:bg-secondary-50/60 transition-colors">
                           <td className="py-3 px-4 text-sm text-secondary-900">{inv.email}</td>
                           <td className="py-3 px-4 text-sm text-secondary-600">{inv.student_name || '-'}</td>
                           <td className="py-3 px-4">
@@ -855,16 +816,16 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-secondary-700 mb-1">
+            <label className="block text-xs font-semibold text-secondary-600 uppercase tracking-wider mb-1.5">
               Emails de invitados (separados por coma)
             </label>
             <textarea
               value={inviteEmails}
               onChange={(e) => setInviteEmails(e.target.value)}
               placeholder="email1@test.com, email2@test.com, email3@test.com"
-              className="w-full h-32 p-3 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="w-full h-32 px-3.5 py-2.5 border border-secondary-200 rounded-lg text-sm text-secondary-900 placeholder:text-secondary-400 hover:border-secondary-300 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all resize-none"
             />
-            <p className="text-xs text-secondary-500 mt-1">
+            <p className="text-xs text-secondary-400 mt-1">
               Ingresa los emails separados por comas
             </p>
           </div>

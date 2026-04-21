@@ -170,8 +170,8 @@ const onSubmit = (dataForm: EventForm) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Eventos</h1>
-          <p className="text-secondary-600">Gestiona los eventos del sistema</p>
+          <h1 className="text-2xl font-bold text-secondary-900 tracking-tight">Eventos</h1>
+          <p className="text-sm text-secondary-500 mt-0.5">Gestiona los eventos del sistema</p>
         </div>
         {isAdmin && (
           <Button onClick={() => openModal()}>
@@ -200,39 +200,44 @@ const onSubmit = (dataForm: EventForm) => {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-secondary-200">
-                <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Nombre</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Fecha</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Ubicación</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Duración</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-secondary-700">Estado</th>
-                <th className="text-right py-3 px-4 text-sm font-semibold text-secondary-700">Acciones</th>
+              <tr className="bg-secondary-50 border-y border-secondary-100">
+                <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Nombre</th>
+                <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Fecha</th>
+                <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Ubicación</th>
+                <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Duración</th>
+                <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Estado</th>
+                <th className="text-right py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-secondary-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-secondary-500">Cargando...</td>
+                  <td colSpan={6} className="py-12 text-center text-secondary-400 text-sm">Cargando...</td>
                 </tr>
               ) : data?.results?.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-secondary-500">No hay eventos</td>
+                  <td colSpan={6} className="py-12 text-center">
+                    <div className="flex flex-col items-center gap-2 text-secondary-400">
+                      <Plus className="w-8 h-8 opacity-40" />
+                      <span className="text-sm">No hay eventos registrados</span>
+                    </div>
+                  </td>
                 </tr>
               ) : (
                 data?.results?.map((event) => (
-                  <tr key={event.id} className="border-b border-secondary-100 hover:bg-secondary-50">
-                    <td className="py-3 px-4 text-sm font-medium text-secondary-900">{event.name}</td>
-                    <td className="py-3 px-4 text-sm text-secondary-600">
+                  <tr key={event.id} className="hover:bg-secondary-50/60 transition-colors">
+                    <td className="py-3 px-4 text-sm font-semibold text-secondary-900">{event.name}</td>
+                    <td className="py-3 px-4 text-sm text-secondary-500">
                       {new Date(event.event_date).toLocaleDateString('es-ES')}
                     </td>
-                    <td className="py-3 px-4 text-sm text-secondary-600">{event.location}</td>
-                    <td className="py-3 px-4 text-sm text-secondary-600">{event.duration_hours}h</td>
+                    <td className="py-3 px-4 text-sm text-secondary-500">{event.location}</td>
+                    <td className="py-3 px-4 text-sm text-secondary-500">{event.duration_hours}h</td>
                     <td className="py-3 px-4">{getStatusBadge(event.status)}</td>
                     <td className="py-3 px-4">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-1">
                         <button
                           onClick={() => navigate(`/events/${event.id}`)}
-                          className="p-1.5 rounded-lg hover:bg-primary-50 text-primary-600"
+                          className="p-1.5 rounded-lg text-primary-500 hover:text-primary-700 hover:bg-primary-50 transition-all"
                           title="Ver detalle"
                         >
                           <Eye className="w-4 h-4" />
@@ -241,13 +246,15 @@ const onSubmit = (dataForm: EventForm) => {
                           <>
                             <button
                               onClick={() => openModal(event)}
-                              className="p-1.5 rounded-lg hover:bg-secondary-100 text-secondary-500"
+                              className="p-1.5 rounded-lg text-secondary-400 hover:text-secondary-700 hover:bg-secondary-100 transition-all"
+                              title="Editar"
                             >
                               <Pencil className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDelete(event.id)}
-                              className="p-1.5 rounded-lg hover:bg-red-50 text-secondary-500 hover:text-error"
+                              className="p-1.5 rounded-lg text-secondary-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                              title="Eliminar"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
