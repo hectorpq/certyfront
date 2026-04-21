@@ -1,0 +1,1 @@
+export { BulkGeneratePage } from './BulkGeneratePage';
