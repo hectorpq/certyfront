@@ -20,8 +20,12 @@ const eventSchema = z.object({
   location: z.string().min(1, 'Ubicación requerida'),
   status: z.string().min(1, 'Estado requerido'),
   category: z.number().optional(),
-  instructor: z.number().optional(),
-  template: z.number().optional(),
+  instructor: z.union([z.string(), z.number()]).optional().transform(v =>
+    v === '' || v === undefined || v === null ? undefined : Number(v)
+  ),
+  template: z.union([z.string(), z.number()]).optional().transform(v =>
+    v === '' || v === undefined || v === null ? undefined : Number(v)
+  ),
 });
 
 type EventForm = z.infer<typeof eventSchema>;
@@ -73,7 +77,7 @@ export const EventsPage = () => {
         duration_hours: String(event.duration_hours),
         location: event.location,
         status: event.status,
-        category: event.category,
+        category: event.category ?? undefined,
         instructor: event.instructor,
         template: event.template,
       });
@@ -102,7 +106,7 @@ const onSubmit = (dataForm: EventForm) => {
       duration_hours: parseInt(dataForm.duration_hours),
       location: dataForm.location,
       status: dataForm.status as Event['status'],
-      category: dataForm.category || 1,
+      category: dataForm.category || null,
       instructor: dataForm.instructor,
       template: dataForm.template,
     };

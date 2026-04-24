@@ -79,6 +79,20 @@ export const useGenerateBulk = () => {
   });
 };
 
+export const useGenerateBulkFull = () => {
+  return useMutation({
+    mutationFn: (params: {
+      excelFile: File;
+      eventId: number;
+      templateImage: File;
+      nameX: number;
+      nameY: number;
+      fontSize?: number;
+      fontColor?: string;
+    }) => certificateService.generateBulkFull(params),
+  });
+};
+
 export const useProcessEdited = () => {
   return useMutation({
     mutationFn: (data: Array<Record<string, unknown>>) =>

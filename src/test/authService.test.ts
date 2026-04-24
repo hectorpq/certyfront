@@ -9,7 +9,7 @@ vi.mock('@/services/api', () => ({
   },
 }));
 
-const mockApi = api as { post: ReturnType<typeof vi.fn>; get: ReturnType<typeof vi.fn> };
+const mockApi = api as unknown as { post: ReturnType<typeof vi.fn>; get: ReturnType<typeof vi.fn> };
 
 describe('authService', () => {
   beforeEach(() => {

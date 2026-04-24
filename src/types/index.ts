@@ -38,7 +38,7 @@ export interface LoginResponse {
   user: {
     id: number;
     email: string;
-    first_name: string;
+    full_name: string;
     role?: 'admin' | 'participante';
     is_staff?: boolean;
   };
@@ -59,7 +59,7 @@ export interface Student {
 
 export interface Event {
   id: number;
-  category: number;
+  category: number | null;
   category_name?: string;
   created_by: number;
   created_by_name?: string;
@@ -69,7 +69,7 @@ export interface Event {
   description: string;
   event_date: string;
   end_date: string | null;
-  duration_hours: number;
+  duration_hours: number | null;
   location: string;
   status: 'draft' | 'active' | 'finished' | 'cancelled';
   status_display?: string;

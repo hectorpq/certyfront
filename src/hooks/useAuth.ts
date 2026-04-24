@@ -31,7 +31,7 @@ export const useAuth = () => {
       queryClient.setQueryData(['currentUser'], {
         id: data.user.id,
         email: data.user.email,
-        full_name: data.user.first_name,
+        full_name: data.user.full_name,
         role: userRole,
         is_active: true,
         is_staff: userIsStaff,

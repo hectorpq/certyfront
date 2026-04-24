@@ -85,6 +85,29 @@ export const certificateService = {
     return response.data;
   },
 
+  async generateBulkFull(params: {
+    excelFile: File;
+    eventId: number;
+    templateImage: File;
+    nameX: number;
+    nameY: number;
+    fontSize?: number;
+    fontColor?: string;
+  }): Promise<BulkImportResult> {
+    const formData = new FormData();
+    formData.append('excel_file', params.excelFile);
+    formData.append('template_image', params.templateImage);
+    formData.append('event_id', String(params.eventId));
+    formData.append('name_x', String(params.nameX));
+    formData.append('name_y', String(params.nameY));
+    formData.append('font_size', String(params.fontSize ?? 28));
+    formData.append('font_color', params.fontColor ?? '#000000');
+    const response = await api.post<BulkImportResult>('/api/certificates/generate-bulk/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
   async processEdited(data: Array<Record<string, unknown>>): Promise<BulkImportResult> {
     const response = await api.post<BulkImportResult>('/api/certificates/process/', {
       data,

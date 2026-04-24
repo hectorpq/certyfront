@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,24 +6,27 @@
 
 @layer base {
   body {
-    font-family: 'Inter', sans-serif;
-    @apply bg-secondary-50 text-secondary-800 antialiased;
-    font-feature-settings: 'cv11', 'ss01';
-  }
-
-  * {
-    @apply transition-colors duration-150;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    @apply bg-gradient-to-br from-slate-100 via-blue-50/40 to-slate-100 text-secondary-800 antialiased;
+    min-height: 100vh;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply tracking-tight;
+    @apply tracking-tight font-bold;
   }
 }
 
 @layer components {
-  /* Table styling */
   .table-row-hover {
-    @apply hover:bg-secondary-50 transition-colors duration-100;
+    @apply hover:bg-primary-50/60 transition-colors duration-100;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-blue-400;
+  }
+
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-white/60;
   }
 }
 
@@ -32,22 +35,18 @@
   width: 6px;
   height: 6px;
 }
-
 ::-webkit-scrollbar-track {
   @apply bg-transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  @apply bg-secondary-300 rounded-full;
+  @apply bg-primary-200 rounded-full;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-secondary-400;
+  @apply bg-primary-400;
 }
 
-/* Remove transition from non-color properties to avoid flicker */
 input, textarea, select, button, a {
   transition-property: color, background-color, border-color, box-shadow, opacity, transform;
-  transition-duration: 150ms;
-  transition-timing-function: ease-in-out;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
