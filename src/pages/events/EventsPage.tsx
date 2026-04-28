@@ -83,7 +83,7 @@ export const EventsPage = () => {
       });
     } else {
       setEditingEvent(null);
-      reset({ name: '', description: '', event_date: '', end_date: '', duration_hours: '', location: '', status: 'draft', category: 1, instructor: undefined, template: undefined });
+      reset({ name: '', description: '', event_date: '', end_date: '', duration_hours: '', location: '', status: 'draft', category: undefined, instructor: undefined, template: undefined });
     }
     setServerError(null);
     setIsModalOpen(true);
@@ -106,7 +106,7 @@ const onSubmit = (dataForm: EventForm) => {
       duration_hours: parseInt(dataForm.duration_hours),
       location: dataForm.location,
       status: dataForm.status as Event['status'],
-      category: dataForm.category || null,
+      category: dataForm.category ?? null,
       instructor: dataForm.instructor,
       template: dataForm.template,
     };

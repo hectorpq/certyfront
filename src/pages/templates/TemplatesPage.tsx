@@ -3,9 +3,18 @@ import { Plus, Pencil, Trash2, Image, Move } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Card, Button, Modal, Input, Badge, Alert } from '@/components/ui';
+import { Card, Button, Modal, Input, Badge, Alert, SignaturePad } from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
+import { useInstructors } from '@/hooks/useInstructors';
 import api from '@/services/api';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+const getMediaUrl = (path: string | null | undefined): string | null => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  return `${API_URL}${path}`;
+};
 
 const templateSchema = z.object({
   name: z.string().min(1, 'Nombre requerido'),
@@ -17,9 +26,7 @@ type TemplateForm = z.infer<typeof templateSchema>;
 
 interface LayoutConfig {
   student_name?: { x: number; y: number; font_size: number; font_family: string; color: string };
-  event_name?: { x: number; y: number; font_size: number; font_family: string; color: string };
-  event_date?: { x: number; y: number; font_size: number; font_family: string; color: string };
-  verification_code?: { x: number; y: number; font_size: number; font_family: string; color: string };
+  signature?: { image_path?: string; image_url?: string; instructor_name?: string; instructor_specialty?: string };
 }
 
 interface TemplateResponse {
@@ -33,7 +40,6 @@ interface TemplateResponse {
   layout_config: LayoutConfig;
   is_active: boolean;
   created_by: number;
-  created_by_name?: string;
   created_at: string;
   updated_at: string;
   font_color?: string;
@@ -45,13 +51,25 @@ interface TemplateResponse {
 
 const TemplatesPage = () => {
   const { isAdmin } = useAuth();
+  const { data: instructors } = useInstructors();
   const [templates, setTemplates] = useState<TemplateResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<TemplateResponse | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  // Background image
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+  // Signature
+  const [signatureFile, setSignatureFile] = useState<File | null>(null);
+  const [signaturePreview, setSignaturePreview] = useState<string | null>(null);
+  const [instructorName, setInstructorName] = useState('');
+  const [instructorSpecialty, setInstructorSpecialty] = useState('');
+  const [selectedInstructorId, setSelectedInstructorId] = useState<number | ''>('');
+
+  // Name layout
   const [layoutConfig, setLayoutConfig] = useState<LayoutConfig>({
     student_name: { x: 100, y: 150, font_size: 24, font_family: 'Arial', color: '#000000' },
   });
@@ -77,10 +95,7 @@ const TemplatesPage = () => {
   const fetchTemplates = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await api.get('/api/templates/', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get('/api/templates/');
       setTemplates(response.data.results || response.data);
     } catch (error) {
       console.error('Error fetching templates:', error);
@@ -95,28 +110,29 @@ const TemplatesPage = () => {
 
   const openModal = (template?: TemplateResponse) => {
     setEditingTemplate(template || null);
+    setServerError(null);
+    setSelectedFile(null);
+    setSignatureFile(null);
+    setSignaturePreview(null);
+
     if (template) {
-      reset({
-        name: template.name,
-        category: template.category || '',
-        is_active: template.is_active,
-      });
+      reset({ name: template.name, category: template.category || '', is_active: template.is_active });
       setLayoutConfig(template.layout_config || {
         student_name: { x: 100, y: 150, font_size: 24, font_family: 'Arial', color: '#000000' },
       });
       setPreviewImage(template.background_image_url || null);
+      const sig = template.layout_config?.signature;
+      setInstructorName(sig?.instructor_name || '');
+      setInstructorSpecialty(sig?.instructor_specialty || '');
+      setSignaturePreview(getMediaUrl(sig?.image_url));
     } else {
-      reset({
-        name: '',
-        category: '',
-        is_active: true,
-      });
-      setLayoutConfig({
-        student_name: { x: 100, y: 150, font_size: 24, font_family: 'Arial', color: '#000000' },
-      });
+      reset({ name: '', category: '', is_active: true });
+      setLayoutConfig({ student_name: { x: 100, y: 150, font_size: 24, font_family: 'Arial', color: '#000000' } });
       setPreviewImage(null);
+      setInstructorName('');
+      setInstructorSpecialty('');
     }
-    setSelectedFile(null);
+    setSelectedInstructorId('');
     setIsModalOpen(true);
   };
 
@@ -125,34 +141,29 @@ const TemplatesPage = () => {
     setEditingTemplate(null);
     setServerError(null);
     setSelectedFile(null);
-    setPreviewImage(null);
+    setSignatureFile(null);
+    setSignaturePreview(null);
+    setSelectedInstructorId('');
     reset();
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setPreviewImage(reader.result as string);
+    reader.readAsDataURL(file);
   };
 
-  const handleDragStart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
+  const handleDragStart = (e: React.MouseEvent) => { e.preventDefault(); setIsDragging(true); };
+  const handleDragEnd = () => setIsDragging(false);
 
   const handleDrag = (e: React.MouseEvent) => {
     if (!isDragging || !previewRef.current) return;
-
     const rect = previewRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = rect.height - (e.clientY - rect.top);
-
     setLayoutConfig((prev) => ({
       ...prev,
       student_name: {
@@ -163,15 +174,9 @@ const TemplatesPage = () => {
     }));
   };
 
-  const handleDragEnd = () => {
-    setIsDragging(false);
-  };
-
   const handleSave = async (data: TemplateForm) => {
+    setServerError(null);
     try {
-      const token = localStorage.getItem('access_token');
-      const headers = { Authorization: `Bearer ${token}` };
-
       const templateData = {
         name: data.name,
         category: data.category || '',
@@ -183,41 +188,40 @@ const TemplatesPage = () => {
         y_coord: Number(layoutConfig.student_name?.y) || 150,
       };
 
-      let savedTemplate;
       let templateId: number;
+
       if (editingTemplate) {
-        const response = await api.put(`/api/templates/${editingTemplate.id}/`, templateData, { headers });
-        savedTemplate = response.data;
+        await api.put(`/api/templates/${editingTemplate.id}/`, templateData);
         templateId = editingTemplate.id;
       } else {
-        const response = await api.post('/api/templates/', templateData, { headers });
-        savedTemplate = response.data;
-        templateId = savedTemplate.id;
+        const response = await api.post('/api/templates/', templateData);
+        templateId = response.data.id; // now included thanks to TemplateCreateSerializer fix
       }
 
+      // Upload background image if selected
       if (selectedFile && templateId) {
-        try {
-          const formData = new FormData();
-          formData.append('file', selectedFile);
-          await api.post(`/api/templates/${templateId}/upload-image/`, formData, {
-            headers: { 
-              Authorization: `Bearer ${token}`,
-            },
-          });
-        } catch (uploadErr) {
-          console.error('Image upload error:', uploadErr);
-        }
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        await api.post(`/api/templates/${templateId}/upload-image/`, formData);
+      }
+
+      // Upload signature if image or name provided
+      if ((signatureFile || instructorName) && templateId) {
+        const sigForm = new FormData();
+        if (signatureFile) sigForm.append('signature_image', signatureFile);
+        if (instructorName) sigForm.append('instructor_name', instructorName);
+        if (instructorSpecialty) sigForm.append('instructor_specialty', instructorSpecialty);
+        await api.post(`/api/templates/${templateId}/upload-signature/`, sigForm);
       }
 
       closeModal();
       fetchTemplates();
     } catch (error: unknown) {
-      const err = error as { response?: { data?: unknown; status?: number } };
+      const err = error as { response?: { data?: unknown } };
       console.error('Template save error:', err.response?.data);
       const errors = err.response?.data as Record<string, unknown> | undefined;
       if (errors) {
-        const errorMessages = Object.values(errors).flat().join(', ');
-        setServerError(errorMessages);
+        setServerError(Object.values(errors).flat().join(', '));
       } else {
         setServerError('Error al guardar plantilla');
       }
@@ -226,12 +230,8 @@ const TemplatesPage = () => {
 
   const handleDelete = async (id: number) => {
     if (!confirm('¿Estás seguro de eliminar esta plantilla?')) return;
-
     try {
-      const token = localStorage.getItem('access_token');
-      await api.delete(`/api/templates/${id}/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`/api/templates/${id}/`);
       fetchTemplates();
     } catch (error) {
       console.error('Error deleting template:', error);
@@ -279,11 +279,7 @@ const TemplatesPage = () => {
             <div key={template.id} className="rounded-2xl border border-secondary-200 bg-white overflow-hidden shadow-[0_1px_4px_0_rgba(0,0,0,0.06)] hover:shadow-md hover:border-primary-200 transition-all">
               <div className="aspect-video bg-secondary-100 flex items-center justify-center overflow-hidden">
                 {template.background_image_url ? (
-                  <img
-                    src={template.background_image_url}
-                    alt={template.name}
-                    className="w-full h-full object-contain"
-                  />
+                  <img src={template.background_image_url} alt={template.name} className="w-full h-full object-contain" />
                 ) : (
                   <Image className="w-12 h-12 text-secondary-300" />
                 )}
@@ -291,6 +287,11 @@ const TemplatesPage = () => {
               <div className="p-4">
                 <h3 className="font-semibold text-secondary-900 truncate">{template.name}</h3>
                 <p className="text-xs text-secondary-400 mt-0.5">{template.category || 'Sin categoría'}</p>
+                {template.layout_config?.signature?.instructor_name && (
+                  <p className="text-xs text-primary-600 mt-0.5">
+                    ✍ {template.layout_config.signature.instructor_name}
+                  </p>
+                )}
                 <div className="flex items-center justify-between mt-3">
                   <Badge variant={template.is_active ? 'success' : 'default'} dot>
                     {template.is_active ? 'Activa' : 'Inactiva'}
@@ -327,55 +328,33 @@ const TemplatesPage = () => {
         size="lg"
       >
         <form onSubmit={handleSubmit(handleSave)} className="space-y-4">
-          {serverError && (
-            <Alert type="error">{serverError}</Alert>
-          )}
+          {serverError && <Alert type="error">{serverError}</Alert>}
 
-          <Input
-            label="Nombre"
-            {...register('name')}
-            error={errors.name?.message}
-          />
-
-          <Input
-            label="Categoría"
-            {...register('category')}
-          />
+          <Input label="Nombre" {...register('name')} error={errors.name?.message} />
+          <Input label="Categoría" {...register('category')} />
 
           <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="is_active"
-              {...register('is_active')}
-              className="rounded border-secondary-300"
-            />
-            <label htmlFor="is_active" className="text-sm text-secondary-700">
-              Plantilla activa
-            </label>
+            <input type="checkbox" id="is_active" {...register('is_active')} className="rounded border-secondary-300" />
+            <label htmlFor="is_active" className="text-sm text-secondary-700">Plantilla activa</label>
           </div>
 
+          {/* Name style */}
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-secondary-600 uppercase tracking-wider mb-1.5">Color de letra</label>
+              <label className="block text-xs font-semibold text-secondary-600 uppercase tracking-wider mb-1.5">Color de nombre</label>
               <input
                 type="color"
                 value={layoutConfig.student_name?.color || '#000000'}
-                onChange={(e) => setLayoutConfig((prev) => ({
-                  ...prev,
-                  student_name: { ...prev.student_name!, color: e.target.value }
-                }))}
+                onChange={(e) => setLayoutConfig((prev) => ({ ...prev, student_name: { ...prev.student_name!, color: e.target.value } }))}
                 className="w-full h-10 rounded-lg border border-secondary-200 cursor-pointer"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-secondary-600 uppercase tracking-wider mb-1.5">Tipo de letra</label>
+              <label className="block text-xs font-semibold text-secondary-600 uppercase tracking-wider mb-1.5">Fuente</label>
               <select
                 value={layoutConfig.student_name?.font_family || 'Helvetica'}
-                onChange={(e) => setLayoutConfig((prev) => ({
-                  ...prev,
-                  student_name: { ...prev.student_name!, font_family: e.target.value }
-                }))}
-                className="w-full h-10 px-3 rounded-lg border border-secondary-200 hover:border-secondary-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500"
+                onChange={(e) => setLayoutConfig((prev) => ({ ...prev, student_name: { ...prev.student_name!, font_family: e.target.value } }))}
+                className="w-full h-10 px-3 rounded-lg border border-secondary-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500"
               >
                 <option value="Helvetica">Helvetica</option>
                 <option value="Arial">Arial</option>
@@ -389,21 +368,16 @@ const TemplatesPage = () => {
               <input
                 type="number"
                 value={layoutConfig.student_name?.font_size || 24}
-                onChange={(e) => setLayoutConfig((prev) => ({
-                  ...prev,
-                  student_name: { ...prev.student_name!, font_size: parseInt(e.target.value) || 24 }
-                }))}
-                className="w-full h-10 px-3 rounded-lg border border-secondary-200 hover:border-secondary-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500"
-                min={8}
-                max={72}
+                onChange={(e) => setLayoutConfig((prev) => ({ ...prev, student_name: { ...prev.student_name!, font_size: parseInt(e.target.value) || 24 } }))}
+                className="w-full h-10 px-3 rounded-lg border border-secondary-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500"
+                min={8} max={72}
               />
             </div>
           </div>
 
+          {/* Background image */}
           <div>
-            <label className="block text-xs font-semibold text-secondary-600 uppercase tracking-wider mb-1.5">
-              Imagen de Fondo
-            </label>
+            <label className="block text-xs font-semibold text-secondary-600 uppercase tracking-wider mb-1.5">Imagen de Fondo</label>
             <input
               type="file"
               accept="image/png,image/jpeg"
@@ -415,7 +389,7 @@ const TemplatesPage = () => {
           {previewImage && (
             <div>
               <label className="block text-xs font-semibold text-secondary-600 uppercase tracking-wider mb-1.5">
-                Previsualización — arrastra el nombre para posicionar
+                Posición del nombre — arrastra para ajustar
               </label>
               <div
                 ref={previewRef}
@@ -424,12 +398,7 @@ const TemplatesPage = () => {
                 onMouseUp={handleDragEnd}
                 onMouseLeave={handleDragEnd}
               >
-                <img
-                  src={previewImage}
-                  alt="Preview"
-                  className="w-full h-full object-contain"
-                  draggable={false}
-                />
+                <img src={previewImage} alt="Preview" className="w-full h-full object-contain" draggable={false} />
                 <div
                   className="absolute flex items-center gap-1 px-2 py-1 bg-white/90 rounded shadow-md text-xs font-bold text-primary-700 border-2 border-primary-500"
                   style={{
@@ -445,18 +414,96 @@ const TemplatesPage = () => {
                 </div>
               </div>
               <p className="text-xs text-secondary-500 mt-1">
-                Posición X: {Math.round(layoutConfig.student_name?.x || 0)}, Y: {Math.round(layoutConfig.student_name?.y || 0)}
+                X: {Math.round(layoutConfig.student_name?.x || 0)} · Y: {Math.round(layoutConfig.student_name?.y || 0)}
               </p>
             </div>
           )}
 
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="secondary" onClick={closeModal}>
-              Cancelar
-            </Button>
-            <Button type="submit">
-              {editingTemplate ? 'Actualizar' : 'Crear'}
-            </Button>
+          {/* Firma digital */}
+          <div className="border-t border-secondary-100 pt-4 space-y-3">
+            <label className="block text-xs font-semibold text-secondary-600 uppercase tracking-wider">
+              Firma Digital del Instructor (opcional)
+            </label>
+
+            {/* Selector de instructor */}
+            {instructors && instructors.length > 0 && (
+              <div>
+                <label className="block text-xs text-secondary-500 mb-1">Seleccionar instructor registrado</label>
+                <select
+                  value={selectedInstructorId}
+                  onChange={(e) => {
+                    const id = e.target.value === '' ? '' : Number(e.target.value);
+                    setSelectedInstructorId(id);
+                    if (id === '') {
+                      setInstructorName('');
+                      setInstructorSpecialty('');
+                      setSignaturePreview(null);
+                      setSignatureFile(null);
+                    } else {
+                      const inst = instructors.find((i) => i.id === id);
+                      if (inst) {
+                        setInstructorName(inst.full_name);
+                        setInstructorSpecialty(inst.specialty || '');
+                        const url = getMediaUrl(inst.signature_image);
+                        setSignaturePreview(url);
+                        if (url) {
+                          fetch(url)
+                            .then((r) => r.blob())
+                            .then((blob) => setSignatureFile(new File([blob], 'firma.png', { type: blob.type })))
+                            .catch(() => {});
+                        } else {
+                          setSignatureFile(null);
+                        }
+                      }
+                    }
+                  }}
+                  className="w-full h-9 px-3 rounded-lg border border-secondary-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500"
+                >
+                  <option value="">— Seleccionar instructor —</option>
+                  {instructors.map((i) => (
+                    <option key={i.id} value={i.id}>
+                      {i.full_name}{i.specialty ? ` — ${i.specialty}` : ''}
+                      {i.signature_image ? ' ✓' : ''}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-secondary-400 mt-1">✓ indica que el instructor tiene firma guardada</p>
+              </div>
+            )}
+
+            {/* Nombre y cargo (editable, se rellena al seleccionar) */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-secondary-500 mb-1">Nombre del instructor</label>
+                <input
+                  type="text"
+                  value={instructorName}
+                  onChange={(e) => setInstructorName(e.target.value)}
+                  placeholder="Ej: Dr. Juan Pérez"
+                  className="w-full h-9 px-3 rounded-lg border border-secondary-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-secondary-500 mb-1">Cargo / Especialidad</label>
+                <input
+                  type="text"
+                  value={instructorSpecialty}
+                  onChange={(e) => setInstructorSpecialty(e.target.value)}
+                  placeholder="Ej: Director Académico"
+                  className="w-full h-9 px-3 rounded-lg border border-secondary-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500"
+                />
+              </div>
+            </div>
+
+            <SignaturePad
+              onSave={(file) => setSignatureFile(file)}
+              initialPreview={signaturePreview}
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2">
+            <Button type="button" variant="secondary" onClick={closeModal}>Cancelar</Button>
+            <Button type="submit">{editingTemplate ? 'Actualizar' : 'Crear'}</Button>
           </div>
         </form>
       </Modal>

@@ -10,3 +10,4 @@ export { SearchInput } from './SearchInput';
 export { FileUpload } from './FileUpload';
 export { Alert } from './Alert';
 export { Spinner, PageLoader } from './Spinner';
+export { SignaturePad } from './SignaturePad';

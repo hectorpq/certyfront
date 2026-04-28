@@ -89,6 +89,9 @@ export const useGenerateBulkFull = () => {
       nameY: number;
       fontSize?: number;
       fontColor?: string;
+      signatureImage?: File;
+      instructorName?: string;
+      instructorSpecialty?: string;
     }) => certificateService.generateBulkFull(params),
   });
 };

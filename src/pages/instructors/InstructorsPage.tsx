@@ -3,10 +3,18 @@ import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Card, Button, Modal, Input, SearchInput, Textarea, Alert } from '@/components/ui';
+import { Card, Button, Modal, Input, SearchInput, Textarea, Alert, SignaturePad } from '@/components/ui';
 import { useInstructors, useCreateInstructor, useUpdateInstructor, useDeleteInstructor } from '@/hooks/useInstructors';
 import { useAuth } from '@/hooks/useAuth';
 import type { Instructor } from '@/types';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+const getMediaUrl = (path: string | null | undefined): string | null => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  return `${API_URL}${path}`;
+};
 
 const instructorSchema = z.object({
   full_name: z.string().min(1, 'Nombre requerido'),
@@ -24,6 +32,8 @@ export const InstructorsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingInstructor, setEditingInstructor] = useState<Instructor | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [signatureFile, setSignatureFile] = useState<File | null>(null);
+  const [signaturePreview, setSignaturePreview] = useState<string | null>(null);
 
   const { data, isLoading } = useInstructors();
   const createInstructor = useCreateInstructor();
@@ -55,10 +65,13 @@ export const InstructorsPage = () => {
         specialty: instructor.specialty,
         bio: instructor.bio,
       });
+      setSignaturePreview(getMediaUrl(instructor.signature_image));
     } else {
       setEditingInstructor(null);
       reset({ full_name: '', email: '', phone: '', specialty: '', bio: '' });
+      setSignaturePreview(null);
     }
+    setSignatureFile(null);
     setServerError(null);
     setIsModalOpen(true);
   };
@@ -67,22 +80,27 @@ export const InstructorsPage = () => {
     setIsModalOpen(false);
     setEditingInstructor(null);
     setServerError(null);
+    setSignatureFile(null);
+    setSignaturePreview(null);
     reset();
   };
 
   const onSubmit = (dataForm: InstructorForm) => {
     setServerError(null);
-    const payload = {
-      full_name: dataForm.full_name,
-      email: dataForm.email,
-      phone: dataForm.phone || '',
-      specialty: dataForm.specialty || '',
-      bio: dataForm.bio || '',
-      signature_url: '',
-    };
+    const formData = new FormData();
+    formData.append('full_name', dataForm.full_name);
+    formData.append('email', dataForm.email);
+    formData.append('phone', dataForm.phone || '');
+    formData.append('specialty', dataForm.specialty || '');
+    formData.append('bio', dataForm.bio || '');
+    formData.append('signature_url', '');
+    if (signatureFile) {
+      formData.append('signature_image', signatureFile);
+    }
+
     if (editingInstructor) {
       updateInstructor.mutate(
-        { id: editingInstructor.id, data: payload },
+        { id: editingInstructor.id, data: formData },
         {
           onSuccess: closeModal,
           onError: (err: unknown) => {
@@ -99,7 +117,7 @@ export const InstructorsPage = () => {
       );
     } else {
       createInstructor.mutate(
-        payload,
+        formData,
         {
           onSuccess: closeModal,
           onError: (err: unknown) => {
@@ -205,6 +223,16 @@ export const InstructorsPage = () => {
                 {instructor.phone && (
                   <p className="text-xs text-secondary-400 mt-2">{instructor.phone}</p>
                 )}
+                {instructor.signature_image && (
+                  <div className="mt-3 pt-3 border-t border-secondary-100">
+                    <p className="text-xs text-secondary-400 mb-1">Firma digital</p>
+                    <img
+                      src={getMediaUrl(instructor.signature_image) ?? ''}
+                      alt="Firma"
+                      className="h-10 object-contain"
+                    />
+                  </div>
+                )}
               </div>
             ))
           )}
@@ -246,8 +274,19 @@ export const InstructorsPage = () => {
           <Textarea
             label="Biografía"
             {...register('bio')}
-            rows={4}
+            rows={3}
           />
+
+          <div>
+            <label className="block text-sm font-medium text-secondary-700 mb-1">
+              Firma Digital
+            </label>
+            <SignaturePad
+              onSave={(file) => setSignatureFile(file)}
+              initialPreview={signaturePreview}
+            />
+          </div>
+
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="secondary" type="button" onClick={closeModal}>
               Cancelar

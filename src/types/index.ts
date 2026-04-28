@@ -2,7 +2,7 @@ export interface User {
   id: number;
   email: string;
   full_name: string;
-  role: 'admin' | 'participante';
+  role: 'admin' | 'coordinador' | 'participante';
   is_active: boolean;
   is_staff: boolean;
 }
@@ -39,7 +39,7 @@ export interface LoginResponse {
     id: number;
     email: string;
     full_name: string;
-    role?: 'admin' | 'participante';
+    role?: 'admin' | 'coordinador' | 'participante';
     is_staff?: boolean;
   };
 }
@@ -87,6 +87,7 @@ export interface Instructor {
   specialty: string;
   bio: string;
   signature_url: string;
+  signature_image?: string | null;
 }
 
 export interface Certificate {

@@ -93,6 +93,9 @@ export const certificateService = {
     nameY: number;
     fontSize?: number;
     fontColor?: string;
+    signatureImage?: File;
+    instructorName?: string;
+    instructorSpecialty?: string;
   }): Promise<BulkImportResult> {
     const formData = new FormData();
     formData.append('excel_file', params.excelFile);
@@ -102,6 +105,15 @@ export const certificateService = {
     formData.append('name_y', String(params.nameY));
     formData.append('font_size', String(params.fontSize ?? 28));
     formData.append('font_color', params.fontColor ?? '#000000');
+    if (params.signatureImage) {
+      formData.append('signature_image', params.signatureImage);
+    }
+    if (params.instructorName) {
+      formData.append('instructor_name', params.instructorName);
+    }
+    if (params.instructorSpecialty) {
+      formData.append('instructor_specialty', params.instructorSpecialty);
+    }
     const response = await api.post<BulkImportResult>('/api/certificates/generate-bulk/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });

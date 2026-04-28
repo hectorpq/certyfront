@@ -19,6 +19,10 @@ api.interceptors.request.use(
     if (token && !config.url?.includes('/login/') && !config.url?.includes('/register/')) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Let the browser set Content-Type with the correct boundary for FormData
+    if (config.data instanceof FormData) {
+      config.headers.delete('Content-Type');
+    }
     return config;
   },
   (error) => {

@@ -23,7 +23,7 @@ export const useInstructor = (id: number) => {
 export const useCreateInstructor = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: Partial<Instructor>) => 
+    mutationFn: (data: FormData) =>
       api.post<Instructor>('/api/instructors/', data).then(res => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['instructors'] });
@@ -34,7 +34,7 @@ export const useCreateInstructor = () => {
 export const useUpdateInstructor = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<Instructor> }) =>
+    mutationFn: ({ id, data }: { id: number; data: FormData }) =>
       api.patch<Instructor>(`/api/instructors/${id}/`, data).then(res => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['instructors'] });

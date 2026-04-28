@@ -4,7 +4,7 @@ import {
   AlertTriangle, ArrowRight, ArrowLeft, ImageIcon, MousePointer,
   Sparkles, Send, RotateCcw, Award,
 } from 'lucide-react';
-import { Card, Button, FileUpload, Alert, Select } from '@/components/ui';
+import { Card, Button, FileUpload, Alert, Select, SignaturePad } from '@/components/ui';
 import { usePreviewExcel, useGenerateBulkFull } from '@/hooks/useCertificates';
 import { useEvents } from '@/hooks/useEvents';
 import type { ExcelPreview, BulkImportResult } from '@/types';
@@ -33,6 +33,9 @@ export const BulkGeneratePage = () => {
   const [namePosition, setNamePosition] = useState<NamePosition>({ x: 50, y: 40 });
   const [fontSize, setFontSize] = useState(28);
   const [fontColor, setFontColor] = useState('#1e3a8a');
+  const [signatureImage, setSignatureImage] = useState<File | null>(null);
+  const [instructorName, setInstructorName] = useState('');
+  const [instructorSpecialty, setInstructorSpecialty] = useState('');
   const [result, setResult] = useState<BulkImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
@@ -71,11 +74,12 @@ export const BulkGeneratePage = () => {
     setTemplatePreviewUrl(URL.createObjectURL(file));
   };
 
+
   const handleGenerate = () => {
     if (!selectedFile || !templateImage || !selectedEventId) return;
     setError(null);
     generateBulk.mutate(
-      { excelFile: selectedFile, eventId: Number(selectedEventId), templateImage, nameX: namePosition.x, nameY: namePosition.y, fontSize, fontColor },
+      { excelFile: selectedFile, eventId: Number(selectedEventId), templateImage, nameX: namePosition.x, nameY: namePosition.y, fontSize, fontColor, signatureImage: signatureImage ?? undefined, instructorName, instructorSpecialty },
       {
         onSuccess: (data) => { setResult(data); setStep('result'); },
         onError: (err) => setError((err as Error).message || 'Error al generar certificados'),
@@ -93,6 +97,10 @@ export const BulkGeneratePage = () => {
     setNamePosition({ x: 50, y: 40 });
     setFontSize(28);
     setFontColor('#1e3a8a');
+    setSignatureImage(null);
+    setSignaturePreviewUrl(null);
+    setInstructorName('');
+    setInstructorSpecialty('');
     setResult(null);
     setError(null);
   };
@@ -356,6 +364,43 @@ export const BulkGeneratePage = () => {
                   </div>
                 </div>
               )}
+
+              {/* Firma digital */}
+              <div className="border-t border-secondary-100 pt-5">
+                <p className="text-sm font-bold text-secondary-700 mb-3 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 text-xs font-black flex items-center justify-center">3</span>
+                  Firma digital del instructor (opcional)
+                </p>
+                <p className="text-xs text-secondary-400 mb-3">
+                  Si el evento ya tiene instructor asignado, su firma se usa automáticamente. Aquí puedes subir una firma ad-hoc o solo escribir el nombre.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-secondary-600 uppercase tracking-wide">Nombre del instructor</label>
+                    <input
+                      type="text"
+                      value={instructorName}
+                      onChange={(e) => setInstructorName(e.target.value)}
+                      placeholder="Ej: Dr. Juan Pérez"
+                      className="w-full h-10 px-3 rounded-lg border border-secondary-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-secondary-600 uppercase tracking-wide">Cargo / Especialidad</label>
+                    <input
+                      type="text"
+                      value={instructorSpecialty}
+                      onChange={(e) => setInstructorSpecialty(e.target.value)}
+                      placeholder="Ej: Director Académico"
+                      className="w-full h-10 px-3 rounded-lg border border-secondary-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500"
+                    />
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <label className="text-xs font-bold text-secondary-600 uppercase tracking-wide block mb-2">Firma</label>
+                  <SignaturePad onSave={(file) => setSignatureImage(file ?? null)} />
+                </div>
+              </div>
 
               {error && <Alert type="error">{error}</Alert>}
             </div>

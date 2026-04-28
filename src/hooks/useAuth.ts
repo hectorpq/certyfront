@@ -17,7 +17,7 @@ export const useAuth = () => {
     enabled: !!authService.getAccessToken(),
   });
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'coordinador';
 
   const loginMutation = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>

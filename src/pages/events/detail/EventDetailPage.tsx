@@ -108,10 +108,6 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
     }
   };
 
-  useState(() => {
-    fetchEventData();
-  });
-
   const fetchDeliveries = async () => {
     try {
       const token = localStorage.getItem('access_token');
@@ -125,10 +121,10 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
   };
 
   useEffect(() => {
-    if (activeTab === 'deliveries' && deliveries.length === 0) {
+    if (activeTab === 'deliveries') {
       fetchDeliveries();
     }
-    if (activeTab === 'invitations' && invitations.length === 0) {
+    if (activeTab === 'invitations') {
       loadInvitations();
     }
   }, [activeTab]);
@@ -239,8 +235,8 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
     try {
       const token = localStorage.getItem('access_token');
       await api.patch(
-        `/api/events/${id}/enroll/`,
-        { enrollment_id: enrollmentId, attendance: !currentAttendance },
+        `/api/enrollments/${enrollmentId}/attendance/`,
+        { attendance: !currentAttendance },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       fetchEventData();
