@@ -91,6 +91,7 @@ export interface Instructor {
 }
 
 export interface Certificate {
+  [x: string]: any;
   id: number;
   student: {
     id: number;

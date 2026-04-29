@@ -3,10 +3,31 @@ import { Sidebar } from './Sidebar';
 
 export const Layout = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50/30 to-slate-100 flex">
+    <div style={{
+      minHeight: '100vh',
+      background: 'var(--bg-app)',
+      display: 'flex',
+      transition: 'background-color 300ms ease',
+    }}>
       <Sidebar />
-      <main className="flex-1 min-w-0 overflow-auto">
-        <div className="p-5 lg:p-10 pt-16 lg:pt-10 max-w-screen-xl mx-auto">
+      <main style={{
+        flex: 1,
+        minWidth: 0,
+        overflowY: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        /* Sutil patrón de puntos en el fondo */
+        backgroundImage: 'radial-gradient(circle, var(--border) 1px, transparent 1px)',
+        backgroundSize: '28px 28px',
+      }}>
+        <div
+          style={{
+            flex: 1,
+            width: '100%',
+            padding: '28px 32px',
+          }}
+          className="pt-16 lg:pt-7"
+        >
           <Outlet />
         </div>
       </main>

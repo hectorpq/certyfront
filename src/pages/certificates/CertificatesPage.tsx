@@ -126,19 +126,23 @@ export const CertificatesPage = () => {
                 className="p-4 rounded-xl border border-secondary-200 hover:border-primary-400 hover:shadow-md transition-all cursor-pointer group"
                 onClick={() => openDetail(cert)}
               >
-                <div className="aspect-[1.4/1] bg-secondary-100 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                <div
+                  className={`aspect-[1.4/1] rounded-lg mb-3 flex flex-col items-center justify-center overflow-hidden transition-transform duration-200 group-hover:scale-[1.02] ${cert.pdf_url ? 'bg-gradient-to-br from-indigo-50 to-sky-50' : 'bg-secondary-100'}`}
+                >
                   {cert.pdf_url ? (
-                    <img
-                      src={cert.pdf_url}
-                      alt="Certificate preview"
-                      className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-200"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                        (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
-                      }}
-                    />
-                  ) : null}
-                  <FileText className={`w-12 h-12 text-secondary-300 ${cert.pdf_url ? 'hidden' : ''}`} />
+                    <>
+                      <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mb-2 shadow-sm">
+                        <FileText className="w-7 h-7 text-primary-600" />
+                      </div>
+                      <span className="text-xs font-semibold text-primary-700 tracking-wide">PDF generado</span>
+                      <span className="text-[10px] text-primary-400 mt-0.5">Clic para ver</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-12 h-12 text-secondary-300" />
+                      <span className="text-xs text-secondary-400 mt-1">Sin generar</span>
+                    </>
+                  )}
                 </div>
                 <div className="flex items-center justify-between mb-2">
                   {getStatusBadge(cert.status)}

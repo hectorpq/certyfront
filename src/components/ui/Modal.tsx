@@ -11,14 +11,8 @@ interface ModalProps {
 
 export const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalProps) => {
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
+    document.body.style.overflow = isOpen ? 'hidden' : 'unset';
+    return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -34,27 +28,59 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalPr
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
+        {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 transition-opacity"
+          style={{ background: 'rgba(10,15,30,0.55)', backdropFilter: 'blur(6px)' }}
           onClick={onClose}
         />
+
+        {/* Panel */}
         <div
-          className={`relative bg-white rounded-2xl shadow-2xl w-full ${sizes[size]} max-h-[90vh] flex flex-col overflow-hidden`}
+          className={`relative w-full ${sizes[size]} max-h-[90vh] flex flex-col overflow-hidden`}
+          style={{
+            background: 'var(--bg-card)',
+            borderRadius: 20,
+            border: '1px solid var(--border)',
+            boxShadow: '0 24px 60px rgba(0,0,0,0.22), 0 8px 24px rgba(37,99,235,0.12)',
+          }}
         >
-          {/* Accent line */}
-          <div className="h-1 bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600 flex-shrink-0" />
+          {/* Accent top bar */}
+          <div style={{
+            height: 3,
+            background: 'linear-gradient(90deg, #1E40AF 0%, #2563EB 50%, #3B82F6 100%)',
+            flexShrink: 0,
+          }} />
 
           {title && (
-            <div className="flex items-center justify-between px-6 py-4 border-b border-secondary-100 flex-shrink-0">
-              <h3 className="text-base font-bold text-secondary-900 tracking-tight">{title}</h3>
+            <div
+              className="flex items-center justify-between px-6 py-4 flex-shrink-0"
+              style={{ borderBottom: '1px solid var(--border)' }}
+            >
+              <h3
+                className="text-base font-bold tracking-tight"
+                style={{ fontFamily: 'Poppins, Inter', color: 'var(--text-primary)' }}
+              >
+                {title}
+              </h3>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg hover:bg-secondary-100 text-secondary-400 hover:text-secondary-600 transition-all"
+                style={{
+                  width: 32, height: 32, borderRadius: 9,
+                  background: 'transparent',
+                  border: '1px solid var(--border)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'var(--text-muted)', cursor: 'pointer',
+                  transition: 'all 150ms ease',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-secondary)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
           )}
+
           <div className="flex-1 overflow-y-auto p-6">{children}</div>
         </div>
       </div>

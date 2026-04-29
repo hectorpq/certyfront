@@ -5,28 +5,63 @@ interface BadgeProps {
 }
 
 export const Badge = ({ children, variant = 'default', dot = false }: BadgeProps) => {
-  const variants = {
-    default: 'bg-secondary-100 text-secondary-600 border border-secondary-200',
-    success: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-    warning: 'bg-amber-50 text-amber-700 border border-amber-200',
-    error: 'bg-red-50 text-red-700 border border-red-200',
-    info: 'bg-blue-50 text-blue-700 border border-blue-200',
+  const styles: Record<string, React.CSSProperties> = {
+    default: {
+      background: 'var(--bg-secondary)',
+      color: 'var(--text-secondary)',
+      border: '1px solid var(--border)',
+    },
+    success: {
+      background: 'var(--color-success-soft, #ECFDF5)',
+      color: 'var(--color-success, #059669)',
+      border: '1px solid rgba(5,150,105,0.22)',
+    },
+    warning: {
+      background: 'var(--color-warning-soft, #FFFBEB)',
+      color: 'var(--color-warning, #D97706)',
+      border: '1px solid rgba(217,119,6,0.22)',
+    },
+    error: {
+      background: 'var(--color-error-soft, #FEF2F2)',
+      color: 'var(--color-error, #DC2626)',
+      border: '1px solid rgba(220,38,38,0.22)',
+    },
+    info: {
+      background: 'var(--color-info-soft, #EFF6FF)',
+      color: 'var(--color-info, #2563EB)',
+      border: '1px solid rgba(37,99,235,0.22)',
+    },
   };
 
-  const dotColors = {
-    default: 'bg-secondary-400',
-    success: 'bg-emerald-500',
-    warning: 'bg-amber-500',
-    error: 'bg-red-500',
-    info: 'bg-blue-500',
+  const dotColors: Record<string, string> = {
+    default: 'var(--text-muted)',
+    success: 'var(--color-success, #059669)',
+    warning: 'var(--color-warning, #D97706)',
+    error:   'var(--color-error, #DC2626)',
+    info:    'var(--color-info, #2563EB)',
   };
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide ${variants[variant]}`}
+      style={{
+        ...styles[variant],
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 5,
+        padding: '3px 10px',
+        borderRadius: 999,
+        fontSize: 11,
+        fontWeight: 700,
+        letterSpacing: '0.02em',
+      }}
     >
       {dot && (
-        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dotColors[variant]}`} />
+        <span style={{
+          width: 6, height: 6, borderRadius: '50%',
+          background: dotColors[variant],
+          flexShrink: 0,
+          boxShadow: `0 0 5px ${dotColors[variant]}80`,
+        }} />
       )}
       {children}
     </span>

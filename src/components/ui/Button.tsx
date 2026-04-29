@@ -9,20 +9,20 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className = '', variant = 'primary', size = 'md', isLoading, children, disabled, ...props }, ref) => {
-    const baseStyles =
-      'inline-flex items-center justify-center font-bold rounded-xl transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none tracking-wide select-none';
+    const base =
+      'inline-flex items-center justify-center font-bold rounded-btn transition-all duration-base ease-smooth focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none tracking-wide select-none';
 
     const variants = {
       primary:
-        'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-[0_4px_15px_0_rgba(59,130,246,0.45)] hover:from-primary-400 hover:to-primary-500 hover:shadow-[0_6px_22px_0_rgba(59,130,246,0.55)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[0_2px_8px_0_rgba(59,130,246,0.35)] focus:ring-primary-400',
+        'bg-gradient-to-r from-primary-700 via-primary-600 to-primary-500 text-white shadow-btn-primary hover:from-primary-800 hover:via-primary-700 hover:to-primary-600 hover:shadow-btn-hover hover:scale-[1.02] hover:-translate-y-0.5 active:translate-y-0 active:scale-100 focus:ring-primary-400',
       secondary:
-        'bg-white text-secondary-700 border-2 border-secondary-200 shadow-sm hover:border-primary-300 hover:text-primary-600 hover:bg-primary-50/50 hover:-translate-y-0.5 active:translate-y-0 focus:ring-primary-400',
+        'bg-white dark:bg-secondary-800 text-secondary-700 dark:text-secondary-200 border border-secondary-200 dark:border-secondary-600 shadow-sm hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50/60 dark:hover:bg-primary-900/30 hover:scale-[1.02] hover:-translate-y-0.5 active:translate-y-0 active:scale-100 focus:ring-primary-400',
       success:
-        'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-[0_4px_15px_0_rgba(16,185,129,0.40)] hover:from-emerald-400 hover:to-emerald-500 hover:shadow-[0_6px_22px_0_rgba(16,185,129,0.50)] hover:-translate-y-0.5 active:translate-y-0 focus:ring-emerald-400',
+        'bg-gradient-to-r from-success-700 to-success-500 text-white shadow-[0_4px_15px_rgba(5,150,105,0.40)] hover:from-success-800 hover:to-success-600 hover:shadow-[0_6px_22px_rgba(5,150,105,0.55)] hover:scale-[1.02] hover:-translate-y-0.5 active:translate-y-0 active:scale-100 focus:ring-success-400',
       danger:
-        'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-[0_4px_15px_0_rgba(239,68,68,0.40)] hover:from-red-400 hover:to-red-500 hover:shadow-[0_6px_22px_0_rgba(239,68,68,0.50)] hover:-translate-y-0.5 active:translate-y-0 focus:ring-red-400',
+        'bg-gradient-to-r from-error-700 to-error-500 text-white shadow-[0_4px_15px_rgba(220,38,38,0.40)] hover:from-error-800 hover:to-error-600 hover:shadow-[0_6px_22px_rgba(220,38,38,0.55)] hover:scale-[1.02] hover:-translate-y-0.5 active:translate-y-0 active:scale-100 focus:ring-error-400',
       ghost:
-        'bg-transparent text-secondary-600 hover:bg-primary-50 hover:text-primary-600 hover:-translate-y-0.5 active:translate-y-0 focus:ring-primary-400',
+        'bg-transparent text-secondary-600 dark:text-secondary-400 hover:bg-primary-50 dark:hover:bg-secondary-700 hover:text-primary-600 hover:scale-[1.02] hover:-translate-y-0.5 active:translate-y-0 active:scale-100 focus:ring-primary-400',
     };
 
     const sizes = {
@@ -34,7 +34,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
-        className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+        className={`${base} ${variants[variant]} ${sizes[size]} ${className}`}
         disabled={disabled || isLoading}
         {...props}
       >
@@ -44,5 +44,4 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     );
   }
 );
-
 Button.displayName = 'Button';

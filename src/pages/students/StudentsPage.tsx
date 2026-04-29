@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Upload, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Upload, Pencil, Trash2, Users } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -10,13 +10,24 @@ import type { Student } from '@/types';
 
 const studentSchema = z.object({
   document_id: z.string().min(1, 'Documento requerido'),
-  first_name: z.string().min(1, 'Nombre requerido'),
-  last_name: z.string().min(1, 'Apellido requerido'),
-  email: z.string().email('Email inválido'),
-  phone: z.string().optional(),
+  first_name:  z.string().min(1, 'Nombre requerido'),
+  last_name:   z.string().min(1, 'Apellido requerido'),
+  email:       z.string().email('Email inválido'),
+  phone:       z.string().optional(),
 });
 
 type StudentForm = z.infer<typeof studentSchema>;
+
+/* Avatar gradient pool */
+const AVATAR_GRADS = [
+  { bg: 'linear-gradient(135deg, #1E40AF, #3B82F6)' },
+  { bg: 'linear-gradient(135deg, #065F46, #10B981)' },
+  { bg: 'linear-gradient(135deg, #6D28D9, #A78BFA)' },
+  { bg: 'linear-gradient(135deg, #92400E, #F59E0B)' },
+  { bg: 'linear-gradient(135deg, #991B1B, #F87171)' },
+  { bg: 'linear-gradient(135deg, #1E3A5F, #2563EB)' },
+  { bg: 'linear-gradient(135deg, #064E3B, #059669)' },
+];
 
 export const StudentsPage = () => {
   const { isAdmin } = useAuth();
@@ -29,30 +40,19 @@ export const StudentsPage = () => {
   const [serverError, setServerError] = useState<string | null>(null);
 
   const { data, isLoading } = useStudents({ page, search, is_active: true });
-  const createStudent = useCreateStudent();
-  const updateStudent = useUpdateStudent();
-  const deleteStudent = useDeleteStudent();
+  const createStudent  = useCreateStudent();
+  const updateStudent  = useUpdateStudent();
+  const deleteStudent  = useDeleteStudent();
   const importStudents = useImportStudents();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<StudentForm>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<StudentForm>({
     resolver: zodResolver(studentSchema),
   });
 
   const openModal = (student?: Student) => {
     if (student) {
       setEditingStudent(student);
-      reset({
-        document_id: student.document_id,
-        first_name: student.first_name,
-        last_name: student.last_name,
-        email: student.email,
-        phone: student.phone || '',
-      });
+      reset({ document_id: student.document_id, first_name: student.first_name, last_name: student.last_name, email: student.email, phone: student.phone || '' });
     } else {
       setEditingStudent(null);
       reset({ document_id: '', first_name: '', last_name: '', email: '', phone: '' });
@@ -72,86 +72,113 @@ export const StudentsPage = () => {
     setServerError(null);
     const payload = {
       document_id: dataForm.document_id,
-      first_name: dataForm.first_name,
-      last_name: dataForm.last_name,
-      email: dataForm.email,
-      phone: dataForm.phone || '',
+      first_name:  dataForm.first_name,
+      last_name:   dataForm.last_name,
+      email:       dataForm.email,
+      phone:       dataForm.phone || '',
     };
-    
     if (editingStudent) {
-      updateStudent.mutate(
-        { id: editingStudent.id, data: payload },
-        { 
-          onSuccess: closeModal,
-          onError: (err: unknown) => {
-            const error = err as { response?: { data?: unknown } };
-            const errors = error.response?.data;
-            if (errors && typeof errors === 'object') {
-              const firstError = Object.values(errors as Record<string, unknown[]>).flat()[0];
-              setServerError(String(firstError));
-            } else {
-              setServerError('Error al actualizar estudiante');
-            }
-          }
+      updateStudent.mutate({ id: editingStudent.id, data: payload }, {
+        onSuccess: closeModal,
+        onError: (err: unknown) => {
+          const e = err as { response?: { data?: unknown } };
+          const errs = e.response?.data;
+          if (errs && typeof errs === 'object') {
+            setServerError(String(Object.values(errs as Record<string, unknown[]>).flat()[0]));
+          } else { setServerError('Error al actualizar estudiante'); }
         }
-      );
+      });
     } else {
       createStudent.mutate(payload, {
         onSuccess: closeModal,
         onError: (err: unknown) => {
-          const error = err as { response?: { data?: unknown } };
-          const errors = error.response?.data;
-          if (errors && typeof errors === 'object') {
-            const firstError = Object.values(errors as Record<string, unknown[]>).flat()[0];
-            setServerError(String(firstError));
-          } else {
-            setServerError('Error al crear estudiante');
-          }
+          const e = err as { response?: { data?: unknown } };
+          const errs = e.response?.data;
+          if (errs && typeof errs === 'object') {
+            setServerError(String(Object.values(errs as Record<string, unknown[]>).flat()[0]));
+          } else { setServerError('Error al crear estudiante'); }
         }
       });
     }
   };
 
   const handleDelete = (id: number) => {
-    if (confirm('¿Estás seguro de eliminar este estudiante?')) {
-      deleteStudent.mutate(id);
-    }
+    if (confirm('¿Estás seguro de eliminar este estudiante?')) deleteStudent.mutate(id);
   };
 
   const handleImport = () => {
     if (selectedFile) {
       importStudents.mutate(selectedFile, {
-        onSuccess: () => {
-          setIsImportModalOpen(false);
-          setSelectedFile(null);
-        },
+        onSuccess: () => { setIsImportModalOpen(false); setSelectedFile(null); },
       });
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+      {/* ── Header ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900 tracking-tight">Estudiantes</h1>
-          <p className="text-sm text-secondary-500 mt-0.5">Gestiona los estudiantes del sistema</p>
+          <h1 style={{ fontFamily: 'Poppins, Inter', fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.4px' }}>
+            Participantes
+          </h1>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '4px 0 0' }}>
+            Gestiona los estudiantes del sistema
+          </p>
         </div>
         {isAdmin && (
-          <div className="flex gap-3">
-            <Button variant="secondary" onClick={() => setIsImportModalOpen(true)}>
-              <Upload className="w-4 h-4 mr-2" />
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              onClick={() => setIsImportModalOpen(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '0 18px', height: 42, borderRadius: 12,
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border)',
+                color: 'var(--text-secondary)',
+                fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                boxShadow: '0 2px 10px rgba(37,99,235,0.07)',
+                transition: 'all 200ms ease',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#2563EB'; e.currentTarget.style.color = '#2563EB'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+            >
+              <Upload style={{ width: 15, height: 15 }} />
               Importar Excel
-            </Button>
-            <Button onClick={() => openModal()}>
-              <Plus className="w-4 h-4 mr-2" />
+            </button>
+            <button
+              onClick={() => openModal()}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '0 18px', height: 42, borderRadius: 12,
+                background: 'linear-gradient(135deg, #1E40AF, #2563EB)',
+                border: 'none',
+                color: '#fff',
+                fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                boxShadow: '0 4px 16px rgba(37,99,235,0.40)',
+                transition: 'all 200ms ease',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(37,99,235,0.50)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(37,99,235,0.40)'; }}
+            >
+              <Plus style={{ width: 15, height: 15 }} />
               Nuevo Estudiante
-            </Button>
+            </button>
           </div>
         )}
       </div>
 
-      <Card>
-        <div className="mb-4">
+      {/* ── Tabla card ── */}
+      <div style={{
+        background: 'var(--bg-card)',
+        borderRadius: 20,
+        border: '1px solid var(--border)',
+        boxShadow: '0 4px 24px rgba(37,99,235,0.08)',
+        overflow: 'hidden',
+      }}>
+        {/* Search */}
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)' }}>
           <SearchInput
             value={search}
             onChange={setSearch}
@@ -159,127 +186,191 @@ export const StudentsPage = () => {
           />
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        {/* Table */}
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr className="bg-secondary-50 border-y border-secondary-100">
-                <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Documento</th>
-                <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Nombre</th>
-                <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Email</th>
-                <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Teléfono</th>
-                <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Estado</th>
-                <th className="text-right py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Acciones</th>
+              <tr style={{ background: 'var(--bg-secondary)' }}>
+                {['Documento', 'Nombre', 'Email', 'Teléfono', 'Estado', 'Acciones'].map((col, i) => (
+                  <th key={col} style={{
+                    padding: '12px 20px',
+                    textAlign: i === 5 ? 'right' : 'left',
+                    fontSize: 11, fontWeight: 700,
+                    color: 'var(--text-muted)',
+                    textTransform: 'uppercase', letterSpacing: '0.06em',
+                    borderBottom: '1px solid var(--border)',
+                  }}>
+                    {col}
+                  </th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-secondary-100">
+            <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-secondary-400 text-sm">Cargando...</td>
+                  <td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+                    Cargando...
+                  </td>
                 </tr>
               ) : data?.results?.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center">
-                    <div className="flex flex-col items-center gap-2 text-secondary-400">
-                      <Upload className="w-8 h-8 opacity-40" />
-                      <span className="text-sm">No hay estudiantes registrados</span>
+                  <td colSpan={6} style={{ padding: '56px', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+                      <Users style={{ width: 36, height: 36, color: 'var(--border)' }} />
+                      <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>No hay estudiantes registrados</span>
                     </div>
                   </td>
                 </tr>
               ) : (
-                data?.results?.map((student) => (
-                  <tr key={student.id} className="hover:bg-secondary-50/60 transition-colors">
-                    <td className="py-3 px-4 text-sm font-mono text-secondary-700">{student.document_id}</td>
-                    <td className="py-3 px-4 text-sm font-medium text-secondary-900">
-                      {student.first_name} {student.last_name}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-secondary-500">{student.email}</td>
-                    <td className="py-3 px-4 text-sm text-secondary-500">{student.phone || '—'}</td>
-                    <td className="py-3 px-4">
-                      <Badge variant={student.is_active ? 'success' : 'error'} dot>
-                        {student.is_active ? 'Activo' : 'Inactivo'}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex justify-end gap-1">
-                        {isAdmin && (
-                          <>
-                            <button
-                              onClick={() => openModal(student)}
-                              className="p-1.5 rounded-lg text-secondary-400 hover:text-secondary-700 hover:bg-secondary-100 transition-all"
-                              title="Editar"
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(student.id)}
-                              className="p-1.5 rounded-lg text-secondary-400 hover:text-red-600 hover:bg-red-50 transition-all"
-                              title="Eliminar"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                data?.results?.map((student, idx) => {
+                  const av = AVATAR_GRADS[idx % AVATAR_GRADS.length];
+                  const initials = `${student.first_name?.[0] ?? ''}${student.last_name?.[0] ?? ''}`.toUpperCase();
+                  return (
+                    <tr
+                      key={student.id}
+                      style={{ borderBottom: '1px solid var(--border)', transition: 'background 150ms ease' }}
+                      onMouseEnter={e => (e.currentTarget as HTMLTableRowElement).style.background = 'var(--bg-secondary)'}
+                      onMouseLeave={e => (e.currentTarget as HTMLTableRowElement).style.background = 'transparent'}
+                    >
+                      {/* Documento */}
+                      <td style={{ padding: '14px 20px' }}>
+                        <span style={{
+                          fontFamily: 'Montserrat, monospace', fontSize: 12, fontWeight: 600,
+                          color: 'var(--text-muted)',
+                          background: 'var(--bg-secondary)',
+                          border: '1px solid var(--border)',
+                          borderRadius: 7, padding: '3px 9px',
+                        }}>
+                          {student.document_id}
+                        </span>
+                      </td>
+
+                      {/* Nombre con avatar */}
+                      <td style={{ padding: '14px 20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+                          <div style={{
+                            width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+                            background: av.bg,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 11, fontWeight: 800, color: '#fff',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                          }}>
+                            {initials}
+                          </div>
+                          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+                            {student.first_name} {student.last_name}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Email */}
+                      <td style={{ padding: '14px 20px', fontSize: 13, color: 'var(--text-secondary)' }}>
+                        {student.email}
+                      </td>
+
+                      {/* Teléfono */}
+                      <td style={{ padding: '14px 20px', fontSize: 13, color: 'var(--text-secondary)' }}>
+                        {student.phone || <span style={{ color: 'var(--border)', fontWeight: 500 }}>—</span>}
+                      </td>
+
+                      {/* Estado */}
+                      <td style={{ padding: '14px 20px' }}>
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 5,
+                          padding: '4px 12px', borderRadius: 999,
+                          fontSize: 11, fontWeight: 700,
+                          background: student.is_active
+                            ? 'var(--color-success-soft, #ECFDF5)'
+                            : 'var(--color-error-soft, #FEF2F2)',
+                          color: student.is_active
+                            ? 'var(--color-success, #059669)'
+                            : 'var(--color-error, #DC2626)',
+                          border: `1px solid ${student.is_active ? 'rgba(5,150,105,0.25)' : 'rgba(220,38,38,0.25)'}`,
+                        }}>
+                          <span style={{
+                            width: 6, height: 6, borderRadius: '50%',
+                            background: student.is_active ? '#059669' : '#DC2626',
+                          }} />
+                          {student.is_active ? 'Activo' : 'Inactivo'}
+                        </span>
+                      </td>
+
+                      {/* Acciones */}
+                      <td style={{ padding: '14px 20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
+                          {isAdmin && (
+                            <>
+                              <button
+                                onClick={() => openModal(student)}
+                                title="Editar"
+                                style={{
+                                  width: 32, height: 32, borderRadius: 9,
+                                  background: 'transparent',
+                                  border: '1px solid var(--border)',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  color: 'var(--text-muted)', cursor: 'pointer',
+                                  transition: 'all 180ms ease',
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(37,99,235,0.10)'; e.currentTarget.style.borderColor = '#2563EB'; e.currentTarget.style.color = '#2563EB'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                              >
+                                <Pencil style={{ width: 14, height: 14 }} />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(student.id)}
+                                title="Eliminar"
+                                style={{
+                                  width: 32, height: 32, borderRadius: 9,
+                                  background: 'transparent',
+                                  border: '1px solid var(--border)',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  color: 'var(--text-muted)', cursor: 'pointer',
+                                  transition: 'all 180ms ease',
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(220,38,38,0.10)'; e.currentTarget.style.borderColor = '#DC2626'; e.currentTarget.style.color = '#DC2626'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                              >
+                                <Trash2 style={{ width: 14, height: 14 }} />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
 
+        {/* Pagination */}
         {data && data.count > 10 && (
-          <Pagination
-            currentPage={page}
-            totalPages={Math.ceil(data.count / 10)}
-            totalItems={data.count}
-            itemsPerPage={10}
-            onPageChange={setPage}
-          />
-        )}
-      </Card>
-
-      <Modal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        title={editingStudent ? 'Editar Estudiante' : 'Nuevo Estudiante'}
-      >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {serverError && (
-            <Alert type="error">{serverError}</Alert>
-          )}
-          <Input
-            label="Documento de Identidad"
-            {...register('document_id')}
-            error={errors.document_id?.message}
-          />
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Nombre"
-              {...register('first_name')}
-              error={errors.first_name?.message}
-            />
-            <Input
-              label="Apellido"
-              {...register('last_name')}
-              error={errors.last_name?.message}
+          <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)' }}>
+            <Pagination
+              currentPage={page}
+              totalPages={Math.ceil(data.count / 10)}
+              totalItems={data.count}
+              itemsPerPage={10}
+              onPageChange={setPage}
             />
           </div>
-          <Input
-            label="Email"
-            type="email"
-            {...register('email')}
-            error={errors.email?.message}
-          />
-          <Input
-            label="Teléfono"
-            {...register('phone')}
-            error={errors.phone?.message}
-          />
+        )}
+      </div>
+
+      {/* ── Modal crear/editar ── */}
+      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingStudent ? 'Editar Estudiante' : 'Nuevo Estudiante'}>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {serverError && <Alert type="error">{serverError}</Alert>}
+          <Input label="Documento de Identidad" {...register('document_id')} error={errors.document_id?.message} />
+          <div className="grid grid-cols-2 gap-4">
+            <Input label="Nombre"   {...register('first_name')} error={errors.first_name?.message} />
+            <Input label="Apellido" {...register('last_name')}  error={errors.last_name?.message} />
+          </div>
+          <Input label="Email"    type="email" {...register('email')} error={errors.email?.message} />
+          <Input label="Teléfono" {...register('phone')} error={errors.phone?.message} />
           <div className="flex justify-end gap-3 pt-4">
-            <Button variant="secondary" type="button" onClick={closeModal}>
-              Cancelar
-            </Button>
+            <Button variant="secondary" type="button" onClick={closeModal}>Cancelar</Button>
             <Button type="submit" isLoading={createStudent.isPending || updateStudent.isPending}>
               {editingStudent ? 'Guardar Cambios' : 'Crear'}
             </Button>
@@ -287,6 +378,7 @@ export const StudentsPage = () => {
         </form>
       </Modal>
 
+      {/* ── Modal importar ── */}
       <Modal
         isOpen={isImportModalOpen}
         onClose={() => { setIsImportModalOpen(false); setSelectedFile(null); }}
@@ -297,34 +389,17 @@ export const StudentsPage = () => {
           <Alert type="info">
             El archivo debe contener las columnas: <strong>document_id</strong>, <strong>first_name</strong>, <strong>last_name</strong>, <strong>email</strong>, <strong>phone</strong> (opcional)
           </Alert>
-          <FileUpload
-            onFileSelect={setSelectedFile}
-            isLoading={importStudents.isPending}
-            error={importStudents.isError ? 'Error al importar' : undefined}
-            success={importStudents.isSuccess}
-          />
+          <FileUpload onFileSelect={setSelectedFile} isLoading={importStudents.isPending} error={importStudents.isError ? 'Error al importar' : undefined} success={importStudents.isSuccess} />
           {importStudents.data && (
             <Alert type="success">
               Se importaron {importStudents.data.imported} de {importStudents.data.total_rows} registros.
-              {importStudents.data.errors.length > 0 && (
-                <div className="mt-2">
-                  {importStudents.data.errors.length} errores.
-                </div>
-              )}
+              {importStudents.data.errors.length > 0 && <div className="mt-2">{importStudents.data.errors.length} errores.</div>}
             </Alert>
           )}
-          {importStudents.isError && (
-            <Alert type="error">
-              Error al importar el archivo. Verifica el formato.
-            </Alert>
-          )}
+          {importStudents.isError && <Alert type="error">Error al importar el archivo. Verifica el formato.</Alert>}
           <div className="flex justify-end gap-3 pt-4">
-            <Button variant="secondary" onClick={() => { setIsImportModalOpen(false); setSelectedFile(null); }}>
-              Cerrar
-            </Button>
-            <Button onClick={handleImport} isLoading={importStudents.isPending} disabled={!selectedFile}>
-              Importar
-            </Button>
+            <Button variant="secondary" onClick={() => { setIsImportModalOpen(false); setSelectedFile(null); }}>Cerrar</Button>
+            <Button onClick={handleImport} isLoading={importStudents.isPending} disabled={!selectedFile}>Importar</Button>
           </div>
         </div>
       </Modal>

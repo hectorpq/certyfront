@@ -15,7 +15,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-xs font-semibold text-secondary-600 uppercase tracking-wider mb-1.5"
+            style={{
+              display: 'block',
+              fontSize: 11,
+              fontWeight: 700,
+              color: 'var(--text-muted)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              marginBottom: 6,
+            }}
           >
             {label}
           </label>
@@ -23,27 +31,48 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           id={inputId}
-          className={`
-            w-full px-3.5 py-2.5 rounded-lg border bg-white text-secondary-900 text-sm
-            placeholder:text-secondary-400 transition-all duration-150
-            focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500
-            ${error
-              ? 'border-red-400 focus:ring-red-400/30 focus:border-red-500'
-              : 'border-secondary-200 hover:border-secondary-300'
+          className={className}
+          style={{
+            width: '100%',
+            padding: '10px 14px',
+            borderRadius: 12,
+            border: `1px solid ${error ? 'var(--color-error, #DC2626)' : 'var(--border)'}`,
+            background: 'var(--bg-card)',
+            color: 'var(--text-primary)',
+            fontSize: 13,
+            fontFamily: 'Inter, system-ui',
+            outline: 'none',
+            transition: 'border-color 150ms ease, box-shadow 150ms ease',
+            boxShadow: error
+              ? '0 0 0 3px rgba(220,38,38,0.12)'
+              : 'none',
+          }}
+          onFocus={e => {
+            if (!error) {
+              e.currentTarget.style.borderColor = 'var(--color-primary, #2563EB)';
+              e.currentTarget.style.boxShadow = '0 0 0 3px var(--color-primary-soft, rgba(37,99,235,0.12))';
             }
-            ${className}
-          `}
+          }}
+          onBlur={e => {
+            if (!error) {
+              e.currentTarget.style.borderColor = 'var(--border)';
+              e.currentTarget.style.boxShadow = 'none';
+            }
+          }}
           {...props}
         />
         {error && (
-          <p className="mt-1.5 text-xs text-red-500 font-medium">{error}</p>
+          <p style={{ marginTop: 5, fontSize: 12, fontWeight: 500, color: 'var(--color-error, #DC2626)' }}>
+            {error}
+          </p>
         )}
         {helperText && !error && (
-          <p className="mt-1.5 text-xs text-secondary-400">{helperText}</p>
+          <p style={{ marginTop: 5, fontSize: 12, color: 'var(--text-muted)' }}>
+            {helperText}
+          </p>
         )}
       </div>
     );
   }
 );
-
 Input.displayName = 'Input';
