@@ -6,29 +6,26 @@ pipeline {
     }
 
     stages {
-        stage('Instalación y Pruebas') {
+        stage('Pipeline Completo Frontend') {
             steps {
-                // Invocamos dinámicamente el wrapper de NodeJS compatible con cualquier alias
+                // Envolvemos todo el pipeline dentro del wrapper de Node v20/v22 estable
                 script {
                     nodejs(nodeJSInstallationName: 'NodeJS') { 
-                        // 1. Instalación limpia de dependencias
+                        
+                        echo '🚀 Iniciando Fase 1: Instalación Limpia...'
                         sh 'npm ci'
                         
-                        // 2. Ejecución de pruebas unitarias (Vitest configurado en tu package.json)
+                        echo '🚀 Iniciando Fase 2: Ejecución de la Suite de Pruebas...'
+                        // Vitest correrá nativamente y escribirá la cobertura en coverage/lcov.info
                         sh 'npm run test -- --coverage || true'
-                    }
-                }
-            }
-        }
-
-        stage('Static Analysis (SonarQube)') {
-            steps {
-                script {
-                    def scannerHome = tool name: 'SonarQubeScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-                    
-                    withSonarQubeEnv("${SONAR_QUBE_SERVER}") {
-                        withCredentials([string(credentialsId: 'sonar-server-token', variable: 'SONAR_TOKEN')]) {
-                            sh "${scannerHome}/bin/sonar-scanner -Dsonar.login=${SONAR_TOKEN} -Dsonar.projectBaseDir=$WORKSPACE"
+                        
+                        echo '🚀 Iniciando Fase 3: Análisis Estático en SonarQube...'
+                        def scannerHome = tool name: 'SonarQubeScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                        
+                        withSonarQubeEnv("${SONAR_QUBE_SERVER}") {
+                            withCredentials([string(credentialsId: 'sonar-server-token', variable: 'SONAR_TOKEN')]) {
+                                sh "${scannerHome}/bin/sonar-scanner -Dsonar.login=${SONAR_TOKEN} -Dsonar.projectBaseDir=$WORKSPACE"
+                            }
                         }
                     }
                 }
