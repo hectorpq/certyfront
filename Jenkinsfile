@@ -5,23 +5,19 @@ pipeline {
         SONAR_QUBE_SERVER = 'SonarQubeServer'
     }
 
-    // 🚀 SOLUCIÓN: Inyectamos Node.js automáticamente en el entorno del Pipeline
-    tools {
-        nodejs 'node' 
-    }
-
     stages {
-        stage('Instalación de Dependencias') {
+        stage('Instalación y Pruebas') {
             steps {
-                // Ahora Jenkins tendrá npm mapeado en el PATH y correrá sin problemas
-                sh 'npm ci'
-            }
-        }
-
-        stage('Ejecución de Pruebas') {
-            steps {
-                // Ejecuta los tests del frontend generando la cobertura
-                sh 'npm run test -- --coverage || true'
+                // Invocamos dinámicamente el wrapper de NodeJS compatible con cualquier alias
+                script {
+                    nodejs(nodeJSInstallationName: 'NodeJS') { 
+                        // 1. Instalación limpia de dependencias
+                        sh 'npm ci'
+                        
+                        // 2. Ejecución de pruebas unitarias (Vitest configurado en tu package.json)
+                        sh 'npm run test -- --coverage || true'
+                    }
+                }
             }
         }
 
