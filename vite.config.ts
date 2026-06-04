@@ -28,14 +28,18 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'lcov'],
-
+      reporter: ['text', 'json', 'json-summary', 'lcov', 'html'],
+      reportOnFailure: true,
+      include: ['src/**/*.{ts,tsx}'],
       exclude: [
         'node_modules/',
         'src/test/',
         'src/main.tsx',
         'src/vite-env.d.ts',
         '**/*.d.ts',
+        'src/**/*.stories.tsx',
+        'src/pages/**',
+        'src/components/layout/**',
       ],
     },
   },
