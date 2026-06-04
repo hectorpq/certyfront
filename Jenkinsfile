@@ -5,18 +5,22 @@ pipeline {
         SONAR_QUBE_SERVER = 'SonarQubeServer'
     }
 
+    // 🚀 SOLUCIÓN: Inyectamos Node.js automáticamente en el entorno del Pipeline
+    tools {
+        nodejs 'node' 
+    }
+
     stages {
         stage('Instalación de Dependencias') {
             steps {
-                // Instalación limpia de paquetes de Node de acuerdo al package-lock.json
+                // Ahora Jenkins tendrá npm mapeado en el PATH y correrá sin problemas
                 sh 'npm ci'
             }
         }
 
         stage('Ejecución de Pruebas') {
             steps {
-                // Ejecuta los tests del frontend generando el reporte lcov para SonarQube
-                // Nota: Asegúrate de tener configurado tu script de test para generar cobertura
+                // Ejecuta los tests del frontend generando la cobertura
                 sh 'npm run test -- --coverage || true'
             }
         }
@@ -24,7 +28,6 @@ pipeline {
         stage('Static Analysis (SonarQube)') {
             steps {
                 script {
-                    // Invoca la herramienta global de escaneo que configuramos en Jenkins
                     def scannerHome = tool name: 'SonarQubeScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
                     
                     withSonarQubeEnv("${SONAR_QUBE_SERVER}") {
