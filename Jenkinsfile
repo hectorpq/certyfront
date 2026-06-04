@@ -8,7 +8,6 @@ pipeline {
     stages {
         stage('Pipeline Completo Frontend') {
             steps {
-                // Envolvemos todo el pipeline dentro del wrapper de Node v20/v22 estable
                 script {
                     nodejs(nodeJSInstallationName: 'NodeJS') { 
                         
@@ -16,7 +15,6 @@ pipeline {
                         sh 'npm ci'
                         
                         echo '🚀 Iniciando Fase 2: Ejecución de la Suite de Pruebas...'
-                        // Vitest correrá nativamente y escribirá la cobertura en coverage/lcov.info
                         sh 'npm run test -- --coverage || true'
                         
                         echo '🚀 Iniciando Fase 3: Análisis Estático en SonarQube...'
@@ -24,7 +22,11 @@ pipeline {
                         
                         withSonarQubeEnv("${SONAR_QUBE_SERVER}") {
                             withCredentials([string(credentialsId: 'sonar-server-token', variable: 'SONAR_TOKEN')]) {
-                                sh "${scannerHome}/bin/sonar-scanner -Dsonar.login=${SONAR_TOKEN} -Dsonar.projectBaseDir=$WORKSPACE"
+                                // Forzamos a SonarQube a analizar el código TS de forma limpia ignorando los bloqueos del compilador estricto
+                                sh "${scannerHome}/bin/sonar-scanner " +
+                                   "-Dsonar.login=${SONAR_TOKEN} " +
+                                   "-Dsonar.projectBaseDir=$WORKSPACE " +
+                                   "-Dsonar.typescript.tsconfigPaths=" 
                             }
                         }
                     }
