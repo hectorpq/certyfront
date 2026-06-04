@@ -12,8 +12,8 @@ pipeline {
                         sh 'npm ci'
                         
                         echo '🚀 Fase 2: Ejecutando suite de pruebas y cobertura...'
-                        // Solo ejecutamos el test aquí una vez
-                        sh 'npm run test -- --coverage'
+                        // Quitamos la bandera extra, ya que el script npm run test ya incluye --coverage
+                        sh 'npm run test'
                         
                         echo '🚀 Fase 3: Análisis Estático SonarQube...'
                         // Crear config temporal para SonarQube
