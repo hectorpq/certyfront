@@ -12,7 +12,7 @@ pipeline {
                         sh 'npm ci'
                         
                         echo '🚀 Fase 2: Ejecutando suite de pruebas y cobertura...'
-                        // Quitamos la bandera extra, ya que el script npm run test ya incluye --coverage
+                        // Quitamos la bandera extra, ya que el script npm run test ya incluye --coverage 1
                         sh 'npm run test'
                         
                         echo '🚀 Fase 3: Verificando reporte de cobertura...'
