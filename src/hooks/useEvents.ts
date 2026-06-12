@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { eventService } from '@/services/eventService';
 import type { Event } from '@/types';
 
-export const useEvents = (params?: { page?: number; search?: string; status?: string; category?: number }) => {
+export const useEvents = (params?: { page?: number; search?: string; status?: string; category?: number; show_deleted?: boolean }) => {
   return useQuery({
     queryKey: ['events', params],
     queryFn: () => eventService.getAll(params),
@@ -42,6 +42,16 @@ export const useDeleteEvent = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: eventService.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+    },
+  });
+};
+
+export const useRestoreEvent = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: eventService.restore,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
     },

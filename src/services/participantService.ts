@@ -38,6 +38,10 @@ export const participantService = {
     await api.delete(`/api/participants/${id}/`);
   },
 
+  async restore(id: number): Promise<void> {
+    await api.post(`/api/participants/${id}/restore/`);
+  },
+
   async importExcel(file: File): Promise<{
     total_rows: number;
     imported: number;

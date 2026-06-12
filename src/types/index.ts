@@ -53,6 +53,11 @@ export interface Participant {
   email: string;
   phone: string;
   is_active: boolean;
+  is_deleted: boolean;
+  deleted_at: string | null;
+  deleted_by: number | null;
+  deleted_by_detail: { id: number; full_name: string; email: string } | null;
+  created_by: number;
   created_at: string;
   updated_at: string;
 }
@@ -75,6 +80,10 @@ export interface Event {
   status_display?: string;
   template?: number;
   template_name?: string | null;
+  is_deleted: boolean;
+  deleted_at: string | null;
+  deleted_by: number | null;
+  deleted_by_detail: { id: number; full_name: string; email: string } | null;
   created_at: string;
   updated_at: string;
 }

@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Plus, Upload, Pencil, Trash2, Users } from 'lucide-react';
+import { Plus, Upload, Pencil, Trash2, RotateCcw, Users } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button, Modal, Input, SearchInput, Pagination, Alert, FileUpload } from '@/components/ui';
-import { useParticipants, useCreateParticipant, useUpdateParticipant, useDeleteParticipant, useImportParticipants } from '@/hooks/useParticipants';
+import { useParticipants, useCreateParticipant, useUpdateParticipant, useDeleteParticipant, useRestoreParticipant, useImportParticipants } from '@/hooks/useParticipants';
 import { useAuth } from '@/hooks/useAuth';
 import type { Participant } from '@/types';
 
@@ -33,16 +33,18 @@ export const ParticipantsPage = () => {
   const { isAdmin } = useAuth();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [showDeleted, setShowDeleted] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [editingParticipant, setEditingParticipant] = useState<Participant | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
 
-  const { data, isLoading } = useParticipants({ page, search, is_active: true });
+  const { data, isLoading } = useParticipants({ page, search, is_active: true, show_deleted: showDeleted || undefined });
   const createParticipant  = useCreateParticipant();
   const updateParticipant  = useUpdateParticipant();
   const deleteParticipant  = useDeleteParticipant();
+  const restoreParticipant = useRestoreParticipant();
   const importParticipants = useImportParticipants();
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<ParticipantForm>({
@@ -106,6 +108,10 @@ export const ParticipantsPage = () => {
     if (confirm('¿Estás seguro de eliminar este participante?')) deleteParticipant.mutate(id);
   };
 
+  const handleRestore = (id: number) => {
+    if (confirm('¿Restaurar este participante?')) restoreParticipant.mutate(id);
+  };
+
   const handleImport = () => {
     if (selectedFile) {
       importParticipants.mutate(selectedFile, {
@@ -128,7 +134,20 @@ export const ParticipantsPage = () => {
           </p>
         </div>
         {isAdmin && (
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <label style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)',
+              cursor: 'pointer', userSelect: 'none',
+            }}>
+              <input
+                type="checkbox"
+                checked={showDeleted}
+                onChange={e => { setShowDeleted(e.target.checked); setPage(1); }}
+                style={{ width: 16, height: 16, cursor: 'pointer' }}
+              />
+              Mostrar eliminados
+            </label>
             <button
               onClick={() => setIsImportModalOpen(true)}
               style={{
@@ -191,10 +210,10 @@ export const ParticipantsPage = () => {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--bg-secondary)' }}>
-                {['Documento', 'Nombre', 'Email', 'Teléfono', 'Estado', 'Acciones'].map((col, i) => (
+                {['Documento', 'Nombre', 'Email', 'Teléfono', 'Estado', 'Eliminado por', 'Acciones'].map((col, i) => (
                   <th key={col} style={{
                     padding: '12px 20px',
-                    textAlign: i === 5 ? 'right' : 'left',
+                    textAlign: i === 6 ? 'right' : 'left',
                     fontSize: 11, fontWeight: 700,
                     color: 'var(--text-muted)',
                     textTransform: 'uppercase', letterSpacing: '0.06em',
@@ -208,13 +227,13 @@ export const ParticipantsPage = () => {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+                  <td colSpan={7} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
                     Cargando...
                   </td>
                 </tr>
               ) : data?.results?.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ padding: '56px', textAlign: 'center' }}>
+                  <td colSpan={7} style={{ padding: '56px', textAlign: 'center' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
                       <Users style={{ width: 36, height: 36, color: 'var(--border)' }} />
                       <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>No hay participantes registrados</span>
@@ -275,34 +294,62 @@ export const ParticipantsPage = () => {
 
                       {/* Estado */}
                       <td style={{ padding: '14px 20px' }}>
-                        <span style={{
-                          display: 'inline-flex', alignItems: 'center', gap: 5,
-                          padding: '4px 12px', borderRadius: 999,
-                          fontSize: 11, fontWeight: 700,
-                          background: participant.is_active
-                            ? 'var(--color-success-soft, #ECFDF5)'
-                            : 'var(--color-error-soft, #FEF2F2)',
-                          color: participant.is_active
-                            ? 'var(--color-success, #059669)'
-                            : 'var(--color-error, #DC2626)',
-                          border: `1px solid ${participant.is_active ? 'rgba(5,150,105,0.25)' : 'rgba(220,38,38,0.25)'}`,
-                        }}>
+                        {participant.is_deleted ? (
                           <span style={{
-                            width: 6, height: 6, borderRadius: '50%',
-                            background: participant.is_active ? '#059669' : '#DC2626',
-                          }} />
-                          {participant.is_active ? 'Activo' : 'Inactivo'}
-                        </span>
+                            display: 'inline-flex', alignItems: 'center', gap: 5,
+                            padding: '4px 12px', borderRadius: 999,
+                            fontSize: 11, fontWeight: 700,
+                            background: '#FFF7ED',
+                            color: '#EA580C',
+                            border: '1px solid rgba(234,88,12,0.25)',
+                          }}>
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#EA580C' }} />
+                            Eliminado
+                          </span>
+                        ) : (
+                          <span style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 5,
+                            padding: '4px 12px', borderRadius: 999,
+                            fontSize: 11, fontWeight: 700,
+                            background: participant.is_active
+                              ? 'var(--color-success-soft, #ECFDF5)'
+                              : 'var(--color-error-soft, #FEF2F2)',
+                            color: participant.is_active
+                              ? 'var(--color-success, #059669)'
+                              : 'var(--color-error, #DC2626)',
+                            border: `1px solid ${participant.is_active ? 'rgba(5,150,105,0.25)' : 'rgba(220,38,38,0.25)'}`,
+                          }}>
+                            <span style={{
+                              width: 6, height: 6, borderRadius: '50%',
+                              background: participant.is_active ? '#059669' : '#DC2626',
+                            }} />
+                            {participant.is_active ? 'Activo' : 'Inactivo'}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Eliminado por */}
+                      <td style={{ padding: '14px 20px', fontSize: 13, color: 'var(--text-secondary)' }}>
+                        {participant.is_deleted && participant.deleted_by_detail ? (
+                          <span>
+                            {participant.deleted_by_detail.full_name}
+                            <span style={{ display: 'block', fontSize: 11, color: 'var(--text-muted)' }}>
+                              {participant.deleted_at ? new Date(participant.deleted_at).toLocaleString('es-ES') : ''}
+                            </span>
+                          </span>
+                        ) : (
+                          <span style={{ color: 'var(--border)', fontWeight: 500 }}>—</span>
+                        )}
                       </td>
 
                       {/* Acciones */}
                       <td style={{ padding: '14px 20px' }}>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
                           {isAdmin && (
-                            <>
+                            participant.is_deleted ? (
                               <button
-                                onClick={() => openModal(participant)}
-                                title="Editar"
+                                onClick={() => handleRestore(participant.id)}
+                                title="Restaurar"
                                 style={{
                                   width: 32, height: 32, borderRadius: 9,
                                   background: 'transparent',
@@ -311,28 +358,47 @@ export const ParticipantsPage = () => {
                                   color: 'var(--text-muted)', cursor: 'pointer',
                                   transition: 'all 180ms ease',
                                 }}
-                                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(37,99,235,0.10)'; e.currentTarget.style.borderColor = '#2563EB'; e.currentTarget.style.color = '#2563EB'; }}
+                                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(5,150,105,0.10)'; e.currentTarget.style.borderColor = '#059669'; e.currentTarget.style.color = '#059669'; }}
                                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
                               >
-                                <Pencil style={{ width: 14, height: 14 }} />
+                                <RotateCcw style={{ width: 14, height: 14 }} />
                               </button>
-                              <button
-                                onClick={() => handleDelete(participant.id)}
-                                title="Eliminar"
-                                style={{
-                                  width: 32, height: 32, borderRadius: 9,
-                                  background: 'transparent',
-                                  border: '1px solid var(--border)',
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  color: 'var(--text-muted)', cursor: 'pointer',
-                                  transition: 'all 180ms ease',
-                                }}
-                                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(220,38,38,0.10)'; e.currentTarget.style.borderColor = '#DC2626'; e.currentTarget.style.color = '#DC2626'; }}
-                                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
-                              >
-                                <Trash2 style={{ width: 14, height: 14 }} />
-                              </button>
-                            </>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => openModal(participant)}
+                                  title="Editar"
+                                  style={{
+                                    width: 32, height: 32, borderRadius: 9,
+                                    background: 'transparent',
+                                    border: '1px solid var(--border)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    color: 'var(--text-muted)', cursor: 'pointer',
+                                    transition: 'all 180ms ease',
+                                  }}
+                                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(37,99,235,0.10)'; e.currentTarget.style.borderColor = '#2563EB'; e.currentTarget.style.color = '#2563EB'; }}
+                                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                                >
+                                  <Pencil style={{ width: 14, height: 14 }} />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(participant.id)}
+                                  title="Eliminar"
+                                  style={{
+                                    width: 32, height: 32, borderRadius: 9,
+                                    background: 'transparent',
+                                    border: '1px solid var(--border)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    color: 'var(--text-muted)', cursor: 'pointer',
+                                    transition: 'all 180ms ease',
+                                  }}
+                                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(220,38,38,0.10)'; e.currentTarget.style.borderColor = '#DC2626'; e.currentTarget.style.color = '#DC2626'; }}
+                                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                                >
+                                  <Trash2 style={{ width: 14, height: 14 }} />
+                                </button>
+                              </>
+                            )
                           )}
                         </div>
                       </td>

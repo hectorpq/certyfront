@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Eye } from 'lucide-react';
+import { Plus, Pencil, Trash2, RotateCcw, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Card, Button, Modal, Input, Select, SearchInput, Pagination, Badge, Textarea, Alert } from '@/components/ui';
-import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent } from '@/hooks/useEvents';
+import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent, useRestoreEvent } from '@/hooks/useEvents';
 import { useInstructors } from '@/hooks/useInstructors';
 import { useTemplates } from '@/hooks/useTemplates';
 import { useAuth } from '@/hooks/useAuth';
@@ -43,16 +43,18 @@ export const EventsPage = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [showDeleted, setShowDeleted] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
 
-  const { data, isLoading } = useEvents({ page, search, status: statusFilter || undefined });
+  const { data, isLoading } = useEvents({ page, search, status: statusFilter || undefined, show_deleted: showDeleted || undefined });
   const { data: instructors } = useInstructors();
   const { data: templates } = useTemplates();
   const createEvent = useCreateEvent();
   const updateEvent = useUpdateEvent();
   const deleteEvent = useDeleteEvent();
+  const restoreEvent = useRestoreEvent();
 
   const {
     register,
@@ -98,7 +100,7 @@ export const EventsPage = () => {
 
 const onSubmit = (dataForm: EventForm) => {
     setServerError(null);
-    const payload: Omit<Event, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'created_by_name' | 'status_display' | 'category_name' | 'template_name'> = {
+    const payload: Omit<Event, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'created_by_name' | 'status_display' | 'category_name' | 'template_name' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'deleted_by_detail'> = {
       name: dataForm.name,
       description: dataForm.description || '',
       event_date: dataForm.event_date,
@@ -154,6 +156,10 @@ const onSubmit = (dataForm: EventForm) => {
     }
   };
 
+  const handleRestore = (id: number) => {
+    if (confirm('¿Restaurar este evento?')) restoreEvent.mutate(id);
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, 'success' | 'warning' | 'default' | 'error'> = {
       active: 'success',
@@ -178,10 +184,25 @@ const onSubmit = (dataForm: EventForm) => {
           <p className="text-sm text-secondary-500 mt-0.5">Gestiona los eventos del sistema</p>
         </div>
         {isAdmin && (
-          <Button onClick={() => openModal()}>
-            <Plus className="w-4 h-4 mr-2" />
-            Nuevo Evento
-          </Button>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <label style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)',
+              cursor: 'pointer', userSelect: 'none',
+            }}>
+              <input
+                type="checkbox"
+                checked={showDeleted}
+                onChange={e => { setShowDeleted(e.target.checked); setPage(1); }}
+                style={{ width: 16, height: 16, cursor: 'pointer' }}
+              />
+              Mostrar eliminados
+            </label>
+            <Button onClick={() => openModal()}>
+              <Plus className="w-4 h-4 mr-2" />
+              Nuevo Evento
+            </Button>
+          </div>
         )}
       </div>
 
@@ -210,65 +231,102 @@ const onSubmit = (dataForm: EventForm) => {
                 <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Ubicación</th>
                 <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Duración</th>
                 <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Estado</th>
+                <th className="text-left py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Eliminado por</th>
                 <th className="text-right py-2.5 px-4 text-xs font-semibold text-secondary-500 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-secondary-100">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="py-12 text-center text-secondary-400 text-sm">Cargando...</td>
-                </tr>
-              ) : data?.results?.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-12 text-center">
-                    <div className="flex flex-col items-center gap-2 text-secondary-400">
-                      <Plus className="w-8 h-8 opacity-40" />
-                      <span className="text-sm">No hay eventos registrados</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                data?.results?.map((event) => (
-                  <tr key={event.id} className="hover:bg-secondary-50/60 transition-colors">
-                    <td className="py-3 px-4 text-sm font-semibold text-secondary-900">{event.name}</td>
-                    <td className="py-3 px-4 text-sm text-secondary-500">
-                      {new Date(event.event_date).toLocaleDateString('es-ES')}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-secondary-500">{event.location}</td>
-                    <td className="py-3 px-4 text-sm text-secondary-500">{event.duration_hours}h</td>
-                    <td className="py-3 px-4">{getStatusBadge(event.status)}</td>
-                    <td className="py-3 px-4">
-                      <div className="flex justify-end gap-1">
-                        <button
-                          onClick={() => navigate(`/events/${event.id}`)}
-                          className="p-1.5 rounded-lg text-primary-500 hover:text-primary-700 hover:bg-primary-50 transition-all"
-                          title="Ver detalle"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        {isAdmin && (
-                          <>
-                            <button
-                              onClick={() => openModal(event)}
-                              className="p-1.5 rounded-lg text-secondary-400 hover:text-secondary-700 hover:bg-secondary-100 transition-all"
-                              title="Editar"
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(event.id)}
-                              className="p-1.5 rounded-lg text-secondary-400 hover:text-red-600 hover:bg-red-50 transition-all"
-                              title="Eliminar"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
+              <tbody className="divide-y divide-secondary-100">
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center text-secondary-400 text-sm">Cargando...</td>
+                  </tr>
+                ) : data?.results?.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center">
+                      <div className="flex flex-col items-center gap-2 text-secondary-400">
+                        <Plus className="w-8 h-8 opacity-40" />
+                        <span className="text-sm">No hay eventos registrados</span>
                       </div>
                     </td>
                   </tr>
-                ))
-              )}
+                ) : (
+                  data?.results?.map((event) => (
+                    <tr key={event.id} className="hover:bg-secondary-50/60 transition-colors">
+                      <td className="py-3 px-4 text-sm font-semibold text-secondary-900">{event.name}</td>
+                      <td className="py-3 px-4 text-sm text-secondary-500">
+                        {new Date(event.event_date).toLocaleDateString('es-ES')}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-secondary-500">{event.location}</td>
+                      <td className="py-3 px-4 text-sm text-secondary-500">{event.duration_hours}h</td>
+                      <td className="py-3 px-4">
+                        {event.is_deleted ? (
+                          <span style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 5,
+                            padding: '4px 12px', borderRadius: 999,
+                            fontSize: 11, fontWeight: 700,
+                            background: '#FFF7ED',
+                            color: '#EA580C',
+                            border: '1px solid rgba(234,88,12,0.25)',
+                          }}>
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#EA580C' }} />
+                            Eliminado
+                          </span>
+                        ) : getStatusBadge(event.status)}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-secondary-500">
+                        {event.is_deleted && event.deleted_by_detail ? (
+                          <span>
+                            {event.deleted_by_detail.full_name}
+                            <span style={{ display: 'block', fontSize: 11, color: 'var(--text-muted)' }}>
+                              {event.deleted_at ? new Date(event.deleted_at).toLocaleString('es-ES') : ''}
+                            </span>
+                          </span>
+                        ) : (
+                          <span style={{ color: 'var(--border)', fontWeight: 500 }}>—</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex justify-end gap-1">
+                          <button
+                            onClick={() => navigate(`/events/${event.id}`)}
+                            className="p-1.5 rounded-lg text-primary-500 hover:text-primary-700 hover:bg-primary-50 transition-all"
+                            title="Ver detalle"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          {isAdmin && (
+                            event.is_deleted ? (
+                              <button
+                                onClick={() => handleRestore(event.id)}
+                                className="p-1.5 rounded-lg text-secondary-400 hover:text-green-600 hover:bg-green-50 transition-all"
+                                title="Restaurar"
+                              >
+                                <RotateCcw className="w-4 h-4" />
+                              </button>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => openModal(event)}
+                                  className="p-1.5 rounded-lg text-secondary-400 hover:text-secondary-700 hover:bg-secondary-100 transition-all"
+                                  title="Editar"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(event.id)}
+                                  className="p-1.5 rounded-lg text-secondary-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                                  title="Eliminar"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </>
+                            )
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
             </tbody>
           </table>
         </div>

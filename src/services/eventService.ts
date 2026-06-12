@@ -32,4 +32,8 @@ export const eventService = {
   async delete(id: number): Promise<void> {
     await api.delete(`/api/events/${id}/`);
   },
+
+  async restore(id: number): Promise<void> {
+    await api.post(`/api/events/${id}/restore/`);
+  },
 };
