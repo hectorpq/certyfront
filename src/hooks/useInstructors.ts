@@ -15,7 +15,7 @@ export const useInstructors = () => {
 export const useInstructor = (id: number) => {
   return useQuery({
     queryKey: ['instructor', id],
-    queryFn: () => api.get<Instructor>(`/api/instructors/${id}/`),
+    queryFn: () => api.get<Instructor>(`/api/instructors/${id}/`).then(res => res.data),
     enabled: !!id,
   });
 };

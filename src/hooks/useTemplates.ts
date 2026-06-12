@@ -15,7 +15,7 @@ export const useTemplates = () => {
 export const useTemplate = (id: number) => {
   return useQuery({
     queryKey: ['template', id],
-    queryFn: () => api.get<Template>(`/api/templates/${id}/`),
+    queryFn: () => api.get<Template>(`/api/templates/${id}/`).then(res => res.data),
     enabled: !!id,
   });
 };

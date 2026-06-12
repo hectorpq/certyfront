@@ -3,12 +3,12 @@ import { Plus, Upload, Pencil, Trash2, Users } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Card, Button, Modal, Input, SearchInput, Pagination, Badge, Alert, FileUpload } from '@/components/ui';
-import { useStudents, useCreateStudent, useUpdateStudent, useDeleteStudent, useImportStudents } from '@/hooks/useStudents';
+import { Button, Modal, Input, SearchInput, Pagination, Alert, FileUpload } from '@/components/ui';
+import { useParticipants, useCreateParticipant, useUpdateParticipant, useDeleteParticipant, useImportParticipants } from '@/hooks/useParticipants';
 import { useAuth } from '@/hooks/useAuth';
-import type { Student } from '@/types';
+import type { Participant } from '@/types';
 
-const studentSchema = z.object({
+const participantSchema = z.object({
   document_id: z.string().min(1, 'Documento requerido'),
   first_name:  z.string().min(1, 'Nombre requerido'),
   last_name:   z.string().min(1, 'Apellido requerido'),
@@ -16,7 +16,7 @@ const studentSchema = z.object({
   phone:       z.string().optional(),
 });
 
-type StudentForm = z.infer<typeof studentSchema>;
+type ParticipantForm = z.infer<typeof participantSchema>;
 
 /* Avatar gradient pool */
 const AVATAR_GRADS = [
@@ -29,32 +29,32 @@ const AVATAR_GRADS = [
   { bg: 'linear-gradient(135deg, #064E3B, #059669)' },
 ];
 
-export const StudentsPage = () => {
+export const ParticipantsPage = () => {
   const { isAdmin } = useAuth();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [editingParticipant, setEditingParticipant] = useState<Participant | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
 
-  const { data, isLoading } = useStudents({ page, search, is_active: true });
-  const createStudent  = useCreateStudent();
-  const updateStudent  = useUpdateStudent();
-  const deleteStudent  = useDeleteStudent();
-  const importStudents = useImportStudents();
+  const { data, isLoading } = useParticipants({ page, search, is_active: true });
+  const createParticipant  = useCreateParticipant();
+  const updateParticipant  = useUpdateParticipant();
+  const deleteParticipant  = useDeleteParticipant();
+  const importParticipants = useImportParticipants();
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<StudentForm>({
-    resolver: zodResolver(studentSchema),
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<ParticipantForm>({
+    resolver: zodResolver(participantSchema),
   });
 
-  const openModal = (student?: Student) => {
-    if (student) {
-      setEditingStudent(student);
-      reset({ document_id: student.document_id, first_name: student.first_name, last_name: student.last_name, email: student.email, phone: student.phone || '' });
+  const openModal = (participant?: Participant) => {
+    if (participant) {
+      setEditingParticipant(participant);
+      reset({ document_id: participant.document_id, first_name: participant.first_name, last_name: participant.last_name, email: participant.email, phone: participant.phone || '' });
     } else {
-      setEditingStudent(null);
+      setEditingParticipant(null);
       reset({ document_id: '', first_name: '', last_name: '', email: '', phone: '' });
     }
     setServerError(null);
@@ -63,12 +63,12 @@ export const StudentsPage = () => {
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setEditingStudent(null);
+    setEditingParticipant(null);
     setServerError(null);
     reset();
   };
 
-  const onSubmit = (dataForm: StudentForm) => {
+  const onSubmit = (dataForm: ParticipantForm) => {
     setServerError(null);
     const payload = {
       document_id: dataForm.document_id,
@@ -77,38 +77,38 @@ export const StudentsPage = () => {
       email:       dataForm.email,
       phone:       dataForm.phone || '',
     };
-    if (editingStudent) {
-      updateStudent.mutate({ id: editingStudent.id, data: payload }, {
+    if (editingParticipant) {
+      updateParticipant.mutate({ id: editingParticipant.id, data: payload }, {
         onSuccess: closeModal,
         onError: (err: unknown) => {
           const e = err as { response?: { data?: unknown } };
           const errs = e.response?.data;
           if (errs && typeof errs === 'object') {
             setServerError(String(Object.values(errs as Record<string, unknown[]>).flat()[0]));
-          } else { setServerError('Error al actualizar estudiante'); }
+          } else { setServerError('Error al actualizar participante'); }
         }
       });
     } else {
-      createStudent.mutate(payload, {
+      createParticipant.mutate(payload, {
         onSuccess: closeModal,
         onError: (err: unknown) => {
           const e = err as { response?: { data?: unknown } };
           const errs = e.response?.data;
           if (errs && typeof errs === 'object') {
             setServerError(String(Object.values(errs as Record<string, unknown[]>).flat()[0]));
-          } else { setServerError('Error al crear estudiante'); }
+          } else { setServerError('Error al crear participante'); }
         }
       });
     }
   };
 
   const handleDelete = (id: number) => {
-    if (confirm('¿Estás seguro de eliminar este estudiante?')) deleteStudent.mutate(id);
+    if (confirm('¿Estás seguro de eliminar este participante?')) deleteParticipant.mutate(id);
   };
 
   const handleImport = () => {
     if (selectedFile) {
-      importStudents.mutate(selectedFile, {
+      importParticipants.mutate(selectedFile, {
         onSuccess: () => { setIsImportModalOpen(false); setSelectedFile(null); },
       });
     }
@@ -163,7 +163,7 @@ export const StudentsPage = () => {
               onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(37,99,235,0.40)'; }}
             >
               <Plus style={{ width: 15, height: 15 }} />
-              Nuevo Estudiante
+              Nuevo Participante
             </button>
           </div>
         )}
@@ -217,17 +217,17 @@ export const StudentsPage = () => {
                   <td colSpan={6} style={{ padding: '56px', textAlign: 'center' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
                       <Users style={{ width: 36, height: 36, color: 'var(--border)' }} />
-                      <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>No hay estudiantes registrados</span>
+                      <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>No hay participantes registrados</span>
                     </div>
                   </td>
                 </tr>
               ) : (
-                data?.results?.map((student, idx) => {
+                data?.results?.map((participant, idx) => {
                   const av = AVATAR_GRADS[idx % AVATAR_GRADS.length];
-                  const initials = `${student.first_name?.[0] ?? ''}${student.last_name?.[0] ?? ''}`.toUpperCase();
+                  const initials = `${participant.first_name?.[0] ?? ''}${participant.last_name?.[0] ?? ''}`.toUpperCase();
                   return (
                     <tr
-                      key={student.id}
+                      key={participant.id}
                       style={{ borderBottom: '1px solid var(--border)', transition: 'background 150ms ease' }}
                       onMouseEnter={e => (e.currentTarget as HTMLTableRowElement).style.background = 'var(--bg-secondary)'}
                       onMouseLeave={e => (e.currentTarget as HTMLTableRowElement).style.background = 'transparent'}
@@ -241,7 +241,7 @@ export const StudentsPage = () => {
                           border: '1px solid var(--border)',
                           borderRadius: 7, padding: '3px 9px',
                         }}>
-                          {student.document_id}
+                          {participant.document_id}
                         </span>
                       </td>
 
@@ -258,19 +258,19 @@ export const StudentsPage = () => {
                             {initials}
                           </div>
                           <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
-                            {student.first_name} {student.last_name}
+                            {participant.first_name} {participant.last_name}
                           </span>
                         </div>
                       </td>
 
                       {/* Email */}
                       <td style={{ padding: '14px 20px', fontSize: 13, color: 'var(--text-secondary)' }}>
-                        {student.email}
+                        {participant.email}
                       </td>
 
                       {/* Teléfono */}
                       <td style={{ padding: '14px 20px', fontSize: 13, color: 'var(--text-secondary)' }}>
-                        {student.phone || <span style={{ color: 'var(--border)', fontWeight: 500 }}>—</span>}
+                        {participant.phone || <span style={{ color: 'var(--border)', fontWeight: 500 }}>—</span>}
                       </td>
 
                       {/* Estado */}
@@ -279,19 +279,19 @@ export const StudentsPage = () => {
                           display: 'inline-flex', alignItems: 'center', gap: 5,
                           padding: '4px 12px', borderRadius: 999,
                           fontSize: 11, fontWeight: 700,
-                          background: student.is_active
+                          background: participant.is_active
                             ? 'var(--color-success-soft, #ECFDF5)'
                             : 'var(--color-error-soft, #FEF2F2)',
-                          color: student.is_active
+                          color: participant.is_active
                             ? 'var(--color-success, #059669)'
                             : 'var(--color-error, #DC2626)',
-                          border: `1px solid ${student.is_active ? 'rgba(5,150,105,0.25)' : 'rgba(220,38,38,0.25)'}`,
+                          border: `1px solid ${participant.is_active ? 'rgba(5,150,105,0.25)' : 'rgba(220,38,38,0.25)'}`,
                         }}>
                           <span style={{
                             width: 6, height: 6, borderRadius: '50%',
-                            background: student.is_active ? '#059669' : '#DC2626',
+                            background: participant.is_active ? '#059669' : '#DC2626',
                           }} />
-                          {student.is_active ? 'Activo' : 'Inactivo'}
+                          {participant.is_active ? 'Activo' : 'Inactivo'}
                         </span>
                       </td>
 
@@ -301,7 +301,7 @@ export const StudentsPage = () => {
                           {isAdmin && (
                             <>
                               <button
-                                onClick={() => openModal(student)}
+                                onClick={() => openModal(participant)}
                                 title="Editar"
                                 style={{
                                   width: 32, height: 32, borderRadius: 9,
@@ -317,7 +317,7 @@ export const StudentsPage = () => {
                                 <Pencil style={{ width: 14, height: 14 }} />
                               </button>
                               <button
-                                onClick={() => handleDelete(student.id)}
+                                onClick={() => handleDelete(participant.id)}
                                 title="Eliminar"
                                 style={{
                                   width: 32, height: 32, borderRadius: 9,
@@ -359,7 +359,7 @@ export const StudentsPage = () => {
       </div>
 
       {/* ── Modal crear/editar ── */}
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingStudent ? 'Editar Estudiante' : 'Nuevo Estudiante'}>
+      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingParticipant ? 'Editar Participante' : 'Nuevo Participante'}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {serverError && <Alert type="error">{serverError}</Alert>}
           <Input label="Documento de Identidad" {...register('document_id')} error={errors.document_id?.message} />
@@ -371,8 +371,8 @@ export const StudentsPage = () => {
           <Input label="Teléfono" {...register('phone')} error={errors.phone?.message} />
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="secondary" type="button" onClick={closeModal}>Cancelar</Button>
-            <Button type="submit" isLoading={createStudent.isPending || updateStudent.isPending}>
-              {editingStudent ? 'Guardar Cambios' : 'Crear'}
+            <Button type="submit" isLoading={createParticipant.isPending || updateParticipant.isPending}>
+              {editingParticipant ? 'Guardar Cambios' : 'Crear'}
             </Button>
           </div>
         </form>
@@ -382,24 +382,24 @@ export const StudentsPage = () => {
       <Modal
         isOpen={isImportModalOpen}
         onClose={() => { setIsImportModalOpen(false); setSelectedFile(null); }}
-        title="Importar Estudiantes desde Excel"
+        title="Importar Participantes desde Excel"
         size="md"
       >
         <div className="space-y-4">
           <Alert type="info">
             El archivo debe contener las columnas: <strong>document_id</strong>, <strong>first_name</strong>, <strong>last_name</strong>, <strong>email</strong>, <strong>phone</strong> (opcional)
           </Alert>
-          <FileUpload onFileSelect={setSelectedFile} isLoading={importStudents.isPending} error={importStudents.isError ? 'Error al importar' : undefined} success={importStudents.isSuccess} />
-          {importStudents.data && (
+          <FileUpload onFileSelect={setSelectedFile} isLoading={importParticipants.isPending} error={importParticipants.isError ? 'Error al importar' : undefined} success={importParticipants.isSuccess} />
+          {importParticipants.data && (
             <Alert type="success">
-              Se importaron {importStudents.data.imported} de {importStudents.data.total_rows} registros.
-              {importStudents.data.errors.length > 0 && <div className="mt-2">{importStudents.data.errors.length} errores.</div>}
+              Se importaron {importParticipants.data.imported} de {importParticipants.data.total_rows} registros.
+              {importParticipants.data.errors.length > 0 && <div className="mt-2">{importParticipants.data.errors.length} errores.</div>}
             </Alert>
           )}
-          {importStudents.isError && <Alert type="error">Error al importar el archivo. Verifica el formato.</Alert>}
+          {importParticipants.isError && <Alert type="error">Error al importar el archivo. Verifica el formato.</Alert>}
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="secondary" onClick={() => { setIsImportModalOpen(false); setSelectedFile(null); }}>Cerrar</Button>
-            <Button onClick={handleImport} isLoading={importStudents.isPending} disabled={!selectedFile}>Importar</Button>
+            <Button onClick={handleImport} isLoading={importParticipants.isPending} disabled={!selectedFile}>Importar</Button>
           </div>
         </div>
       </Modal>

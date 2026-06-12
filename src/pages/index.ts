@@ -1,6 +1,6 @@
 export * from './auth';
 export * from './dashboard';
-export * from './students';
+export * from './participants';
 export * from './events';
 export * from './instructors';
 export * from './certificates';

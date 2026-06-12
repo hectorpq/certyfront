@@ -14,8 +14,8 @@ interface InvitationDetail {
   email: string;
   status: string;
   expires_at: string;
-  student_exists: boolean;
-  student: number | null;
+  participant_exists: boolean;
+  participant: number | null;
 }
 
 export const InvitationPage = () => {
@@ -184,7 +184,7 @@ export const InvitationPage = () => {
               <div className="text-center">
                 <Alert type="error">Esta invitación ha expirado.</Alert>
               </div>
-            ) : invitation.student_exists && isLoggedInUser ? (
+            ) : invitation.participant_exists && isLoggedInUser ? (
               <div className="text-center">
                 <p className="text-secondary-600 text-sm mb-5">
                   ¡Bienvenido! Has sido invitado a este evento. Haz clic en aceptar para inscribirte.
@@ -193,7 +193,7 @@ export const InvitationPage = () => {
                   Aceptar Invitación
                 </Button>
               </div>
-            ) : invitation.student_exists ? (
+            ) : invitation.participant_exists ? (
               <div className="text-center">
                 <p className="text-secondary-600 text-sm mb-5">
                   Has sido invitado a este evento. Haz clic en aceptar para inscribirte.

@@ -369,6 +369,60 @@
   }
 }
 
+/* ─── Dark mode overrides for Tailwind utility classes ──────────────────── */
+.dark .text-secondary-900 { color: #F0F4FF; }
+.dark .text-secondary-800 { color: #E2E8F0; }
+.dark .text-secondary-700 { color: #CBD5E1; }
+.dark .text-secondary-600 { color: #A0AEC0; }
+.dark .text-secondary-500 { color: #8899AA; }
+.dark .text-secondary-400 { color: #64748B; }
+.dark .text-secondary-300 { color: #475569; }
+.dark .text-secondary-200 { color: #334155; }
+.dark .text-secondary-100 { color: #1E293B; }
+.dark .text-secondary-50  { color: #0F172A; }
+
+.dark .text-primary-600 { color: #60A5FA; }
+.dark .text-primary-700 { color: #93C5FD; }
+.dark .text-primary-500 { color: #3B82F6; }
+.dark .text-primary-400 { color: #60A5FA; }
+
+.dark .text-emerald-600 { color: #34D399; }
+.dark .text-emerald-500 { color: #10B981; }
+.dark .text-emerald-800 { color: #6EE7B7; }
+.dark .text-blue-600   { color: #60A5FA; }
+.dark .text-amber-600  { color: #FBBF24; }
+.dark .text-violet-600 { color: #A78BFA; }
+.dark .text-orange-600 { color: #FB923C; }
+.dark .text-red-600    { color: #F87171; }
+.dark .text-red-500    { color: #EF4444; }
+.dark .text-red-800    { color: #FCA5A5; }
+.dark .text-green-600  { color: #34D399; }
+.dark .text-green-500  { color: #10B981; }
+
+.dark .bg-secondary-50   { background-color: #1A1F2B; }
+.dark .bg-secondary-100  { background-color: #242B38; }
+.dark .bg-secondary-200  { background-color: #2A3447; }
+.dark .bg-white          { background-color: var(--bg-card); }
+.dark .bg-primary-50     { background-color: rgba(41,98,255,0.12); }
+.dark .bg-emerald-50     { background-color: rgba(52,211,153,0.12); }
+.dark .bg-blue-50        { background-color: rgba(96,165,250,0.12); }
+.dark .bg-amber-50       { background-color: rgba(251,191,36,0.12); }
+.dark .bg-violet-50      { background-color: rgba(167,139,250,0.12); }
+.dark .bg-orange-50      { background-color: rgba(251,146,60,0.12); }
+.dark .bg-red-50         { background-color: rgba(248,113,113,0.12); }
+.dark .bg-green-100      { background-color: rgba(52,211,153,0.15); }
+.dark .bg-red-100        { background-color: rgba(248,113,113,0.15); }
+.dark .border-secondary-100 { border-color: #2A3447; }
+.dark .border-secondary-200 { border-color: #374151; }
+.dark .border-secondary-300 { border-color: #475569; }
+.dark .divide-secondary-100 > * + * { border-color: #2A3447; }
+.dark .hover\:bg-secondary-50\/60:hover { background-color: rgba(26,31,43,0.6); }
+.dark .hover\:bg-secondary-100:hover { background-color: #242B38; }
+.dark .border-emerald-200 { border-color: rgba(52,211,153,0.25); }
+.dark .border-red-200    { border-color: rgba(248,113,113,0.25); }
+.dark .border-amber-200  { border-color: rgba(251,191,36,0.25); }
+.dark .border-blue-200   { border-color: rgba(96,165,250,0.25); }
+
 /* ─── Scrollbar ──────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar        { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track  { background: transparent; }

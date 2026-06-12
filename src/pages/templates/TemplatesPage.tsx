@@ -25,7 +25,7 @@ const templateSchema = z.object({
 type TemplateForm = z.infer<typeof templateSchema>;
 
 interface LayoutConfig {
-  student_name?: { x: number; y: number; font_size: number; font_family: string; color: string };
+  participant_name?: { x: number; y: number; font_size: number; font_family: string; color: string };
   signature?: { image_path?: string; image_url?: string; instructor_name?: string; instructor_specialty?: string };
 }
 
@@ -71,7 +71,7 @@ const TemplatesPage = () => {
 
   // Name layout
   const [layoutConfig, setLayoutConfig] = useState<LayoutConfig>({
-    student_name: { x: 100, y: 150, font_size: 24, font_family: 'Arial', color: '#000000' },
+    participant_name: { x: 100, y: 150, font_size: 24, font_family: 'Arial', color: '#000000' },
   });
   const [containerHeight, setContainerHeight] = useState(400);
   const [isDragging, setIsDragging] = useState(false);
@@ -118,7 +118,7 @@ const TemplatesPage = () => {
     if (template) {
       reset({ name: template.name, category: template.category || '', is_active: template.is_active });
       setLayoutConfig(template.layout_config || {
-        student_name: { x: 100, y: 150, font_size: 24, font_family: 'Arial', color: '#000000' },
+        participant_name: { x: 100, y: 150, font_size: 24, font_family: 'Arial', color: '#000000' },
       });
       setPreviewImage(template.background_image_url || null);
       const sig = template.layout_config?.signature;
@@ -127,7 +127,7 @@ const TemplatesPage = () => {
       setSignaturePreview(getMediaUrl(sig?.image_url));
     } else {
       reset({ name: '', category: '', is_active: true });
-      setLayoutConfig({ student_name: { x: 100, y: 150, font_size: 24, font_family: 'Arial', color: '#000000' } });
+      setLayoutConfig({ participant_name: { x: 100, y: 150, font_size: 24, font_family: 'Arial', color: '#000000' } });
       setPreviewImage(null);
       setInstructorName('');
       setInstructorSpecialty('');
@@ -166,8 +166,8 @@ const TemplatesPage = () => {
     const y = rect.height - (e.clientY - rect.top);
     setLayoutConfig((prev) => ({
       ...prev,
-      student_name: {
-        ...prev.student_name!,
+      participant_name: {
+        ...prev.participant_name!,
         x: Math.max(0, Math.min(x, rect.width)),
         y: Math.max(0, Math.min(y, rect.height)),
       },
@@ -181,11 +181,11 @@ const TemplatesPage = () => {
         name: data.name,
         category: data.category || '',
         is_active: data.is_active ?? true,
-        font_color: String(layoutConfig.student_name?.color || '#000000'),
-        font_family: String(layoutConfig.student_name?.font_family || 'Helvetica'),
-        font_size: Number(layoutConfig.student_name?.font_size) || 24,
-        x_coord: Number(layoutConfig.student_name?.x) || 100,
-        y_coord: Number(layoutConfig.student_name?.y) || 150,
+        font_color: String(layoutConfig.participant_name?.color || '#000000'),
+        font_family: String(layoutConfig.participant_name?.font_family || 'Helvetica'),
+        font_size: Number(layoutConfig.participant_name?.font_size) || 24,
+        x_coord: Number(layoutConfig.participant_name?.x) || 100,
+        y_coord: Number(layoutConfig.participant_name?.y) || 150,
       };
 
       let templateId: number;
@@ -344,16 +344,16 @@ const TemplatesPage = () => {
               <label className="block text-xs font-semibold text-secondary-600 uppercase tracking-wider mb-1.5">Color de nombre</label>
               <input
                 type="color"
-                value={layoutConfig.student_name?.color || '#000000'}
-                onChange={(e) => setLayoutConfig((prev) => ({ ...prev, student_name: { ...prev.student_name!, color: e.target.value } }))}
+                value={layoutConfig.participant_name?.color || '#000000'}
+                onChange={(e) => setLayoutConfig((prev) => ({ ...prev, participant_name: { ...prev.participant_name!, color: e.target.value } }))}
                 className="w-full h-10 rounded-lg border border-secondary-200 cursor-pointer"
               />
             </div>
             <div>
               <label className="block text-xs font-semibold text-secondary-600 uppercase tracking-wider mb-1.5">Fuente</label>
               <select
-                value={layoutConfig.student_name?.font_family || 'Helvetica'}
-                onChange={(e) => setLayoutConfig((prev) => ({ ...prev, student_name: { ...prev.student_name!, font_family: e.target.value } }))}
+                value={layoutConfig.participant_name?.font_family || 'Helvetica'}
+                onChange={(e) => setLayoutConfig((prev) => ({ ...prev, participant_name: { ...prev.participant_name!, font_family: e.target.value } }))}
                 className="w-full h-10 px-3 rounded-lg border border-secondary-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500"
               >
                 <option value="Helvetica">Helvetica</option>
@@ -367,8 +367,8 @@ const TemplatesPage = () => {
               <label className="block text-xs font-semibold text-secondary-600 uppercase tracking-wider mb-1.5">Tamaño</label>
               <input
                 type="number"
-                value={layoutConfig.student_name?.font_size || 24}
-                onChange={(e) => setLayoutConfig((prev) => ({ ...prev, student_name: { ...prev.student_name!, font_size: parseInt(e.target.value) || 24 } }))}
+                value={layoutConfig.participant_name?.font_size || 24}
+                onChange={(e) => setLayoutConfig((prev) => ({ ...prev, participant_name: { ...prev.participant_name!, font_size: parseInt(e.target.value) || 24 } }))}
                 className="w-full h-10 px-3 rounded-lg border border-secondary-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500"
                 min={8} max={72}
               />
@@ -402,8 +402,8 @@ const TemplatesPage = () => {
                 <div
                   className="absolute flex items-center gap-1 px-2 py-1 bg-white/90 rounded shadow-md text-xs font-bold text-primary-700 border-2 border-primary-500"
                   style={{
-                    left: layoutConfig.student_name?.x || 100,
-                    top: containerHeight - (layoutConfig.student_name?.y || 150),
+                    left: layoutConfig.participant_name?.x || 100,
+                    top: containerHeight - (layoutConfig.participant_name?.y || 150),
                     transform: 'translate(-50%, -50%)',
                     cursor: isDragging ? 'grabbing' : 'grab',
                   }}
@@ -414,7 +414,7 @@ const TemplatesPage = () => {
                 </div>
               </div>
               <p className="text-xs text-secondary-500 mt-1">
-                X: {Math.round(layoutConfig.student_name?.x || 0)} · Y: {Math.round(layoutConfig.student_name?.y || 0)}
+                X: {Math.round(layoutConfig.participant_name?.x || 0)} · Y: {Math.round(layoutConfig.participant_name?.y || 0)}
               </p>
             </div>
           )}

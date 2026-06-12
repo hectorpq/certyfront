@@ -12,7 +12,7 @@ const adminNavItems = [
   { to: '/certificates',  icon: Award,           label: 'Certificados'  },
   { to: '/templates',     icon: LayoutTemplate,  label: 'Plantillas'    },
   { to: '/bulk-generate', icon: FileSpreadsheet, label: 'Emisiones'     },
-  { to: '/students',      icon: Users,           label: 'Participantes' },
+    { to: '/participants', icon: Users, label: 'Participantes' },
   { to: '/events',        icon: Calendar,        label: 'Eventos'       },
   { to: '/instructors',   icon: GraduationCap,   label: 'Instructores'  },
 ];

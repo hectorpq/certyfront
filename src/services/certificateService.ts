@@ -19,7 +19,7 @@ export const certificateService = {
     return response.data;
   },
 
-  async create(data: { student_id: number; event_id: number; template?: number }): Promise<Certificate> {
+  async create(data: { participant_id: number; event_id: number; template?: number }): Promise<Certificate> {
     const response = await api.post<Certificate>('/api/certificates/', data);
     return response.data;
   },

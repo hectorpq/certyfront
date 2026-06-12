@@ -44,7 +44,7 @@ export interface LoginResponse {
   };
 }
 
-export interface Student {
+export interface Participant {
   id: number;
   document_id: string;
   first_name: string;
@@ -93,7 +93,7 @@ export interface Instructor {
 export interface Certificate {
   [x: string]: any;
   id: number;
-  student: {
+  participant: {
     id: number;
     full_name: string;
     email: string;
@@ -102,8 +102,13 @@ export interface Certificate {
   event: {
     id: number;
     name: string;
-    event_date: string;
-    category?: string;
+    event_date?: string | null;
+    end_date?: string | null;
+    description?: string;
+    location?: string;
+    duration_hours?: number | null;
+    instructor_name?: string | null;
+    category?: string | number | null;
   };
   template?: number;
   status: 'pending' | 'generated' | 'sent' | 'failed';
@@ -178,5 +183,5 @@ export interface DashboardStats {
   sent_certificates: number;
   failed_certificates: number;
   active_events: number;
-  total_students: number;
+  total_participants: number;
 }

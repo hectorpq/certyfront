@@ -98,7 +98,6 @@ export const BulkGeneratePage = () => {
     setFontSize(28);
     setFontColor('#1e3a8a');
     setSignatureImage(null);
-    setSignaturePreviewUrl(null);
     setInstructorName('');
     setInstructorSpecialty('');
     setResult(null);
@@ -123,7 +122,7 @@ export const BulkGeneratePage = () => {
           </span>
         </h1>
         <p className="text-secondary-500 font-medium text-base">
-          Genera y envía certificados a todos tus estudiantes desde un Excel
+          Genera y envía certificados a todos tus participantes desde un Excel
         </p>
       </div>
 
@@ -187,7 +186,7 @@ export const BulkGeneratePage = () => {
               <p className="font-bold mb-2 text-sm">Columnas requeridas en el Excel:</p>
               <ul className="space-y-1">
                 {[
-                  ['full_name', 'nombre completo del estudiante'],
+                  ['full_name', 'nombre completo del participante'],
                   ['email', 'correo electrónico'],
                   ['document_id', 'DNI o cédula (único por persona)'],
                   ['phone', 'teléfono (opcional)'],
@@ -221,7 +220,7 @@ export const BulkGeneratePage = () => {
                 </div>
                 <div>
                   <p className="font-bold text-secondary-900">
-                    {previewData.row_count} estudiantes encontrados
+                    {previewData.row_count} participantes encontrados
                   </p>
                   <p className="text-sm text-secondary-500">Revisa que los datos sean correctos</p>
                 </div>
@@ -299,7 +298,7 @@ export const BulkGeneratePage = () => {
                   <p className="text-sm font-bold text-secondary-700 flex items-center gap-2">
                     <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 text-xs font-black flex items-center justify-center">2</span>
                     <MousePointer className="w-4 h-4 text-primary-500" />
-                    Haz clic en la imagen para colocar el nombre del estudiante
+                    Haz clic en la imagen para colocar el nombre del participante
                   </p>
 
                   <div
