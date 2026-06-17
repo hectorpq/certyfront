@@ -69,7 +69,7 @@ const TemplatesPage = () => {
   const [instructorSpecialty, setInstructorSpecialty] = useState('');
   const [selectedInstructorId, setSelectedInstructorId] = useState<number | ''>('');
 
-  // Name layout
+  // Name layout — valores en píxeles para el canvas, se convierten a pulgadas al enviar al backend
   const [layoutConfig, setLayoutConfig] = useState<LayoutConfig>({
     participant_name: { x: 100, y: 150, font_size: 24, font_family: 'Arial', color: '#000000' },
   });
@@ -117,8 +117,16 @@ const TemplatesPage = () => {
 
     if (template) {
       reset({ name: template.name, category: template.category || '', is_active: template.is_active });
-      setLayoutConfig(template.layout_config || {
-        participant_name: { x: 100, y: 150, font_size: 24, font_family: 'Arial', color: '#000000' },
+      const savedLayout = template.layout_config || {};
+      const savedName = savedLayout.participant_name || {} as NonNullable<LayoutConfig['participant_name']>;
+      setLayoutConfig({
+        participant_name: {
+          x: (savedName.x || 1.39) * 72,
+          y: (savedName.y || 2.08) * 72,
+          font_size: savedName.font_size || 24,
+          font_family: savedName.font_family || 'Arial',
+          color: savedName.color || '#000000',
+        },
       });
       setPreviewImage(template.background_image_url || null);
       const sig = template.layout_config?.signature;
@@ -184,8 +192,8 @@ const TemplatesPage = () => {
         font_color: String(layoutConfig.participant_name?.color || '#000000'),
         font_family: String(layoutConfig.participant_name?.font_family || 'Helvetica'),
         font_size: Number(layoutConfig.participant_name?.font_size) || 24,
-        x_coord: Number(layoutConfig.participant_name?.x) || 100,
-        y_coord: Number(layoutConfig.participant_name?.y) || 150,
+        x_coord: Number(layoutConfig.participant_name?.x) / 72 || 1.39,
+        y_coord: Number(layoutConfig.participant_name?.y) / 72 || 2.08,
       };
 
       let templateId: number;
