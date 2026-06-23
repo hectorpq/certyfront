@@ -70,6 +70,8 @@ export interface Event {
   created_by_name?: string;
   instructor?: number;
   instructor_name?: string | null;
+  instructor_specialty?: string | null;
+  instructor_signature?: string | null;
   name: string;
   description: string;
   event_date: string;
@@ -81,6 +83,7 @@ export interface Event {
   template?: number;
   template_name?: string | null;
   template_image?: string;
+  font_color?: string;
   name_font_size?: number;
   name_x?: number;
   name_y?: number;

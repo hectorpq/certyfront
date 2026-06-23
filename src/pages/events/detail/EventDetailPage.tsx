@@ -89,20 +89,17 @@ export const EventDetailPage = () => {
 
   const fetchEventData = async () => {
     try {
-      const token = localStorage.getItem('access_token');
-      const headers = { Authorization: `Bearer ${token}` };
-
       const [eventRes, statsRes] = await Promise.all([
-        api.get<Event>(`/api/events/${id}/`, { headers }),
-        api.get<EventStats>(`/api/events/${id}/stats/`, { headers }),
+        api.get<Event>(`/api/events/${id}/`),
+        api.get<EventStats>(`/api/events/${id}/stats/`),
       ]);
 
       setEvent(eventRes.data);
       setStats(statsRes.data);
 
-      if (eventRes.data.created_by === user?.id) {
+      if (isAdmin || eventRes.data.created_by === user?.id) {
         try {
-          const participantsRes = await api.get<EnrolledParticipant[]>(`/api/events/${id}/participants/`, { headers });
+          const participantsRes = await api.get<EnrolledParticipant[]>(`/api/events/${id}/participants/`);
           setParticipants(participantsRes.data);
         } catch {
           setParticipants([]);
@@ -117,10 +114,7 @@ export const EventDetailPage = () => {
 
   const fetchDeliveries = async () => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await api.get<DeliveryLog[]>(`/api/events/${id}/deliveries/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get<DeliveryLog[]>(`/api/events/${id}/deliveries/`);
       setDeliveries(response.data);
     } catch (error) {
       console.error('Error fetching deliveries:', error);
@@ -160,7 +154,6 @@ export const EventDetailPage = () => {
     setIsSending(true);
     setSendResult(null);
     try {
-      const token = localStorage.getItem('access_token');
       const participantIds = participants
         .filter(p => selectedParticipants.includes(p.enrollment_id) && p.certificate_id)
         .map(p => p.participant_id);
@@ -168,7 +161,6 @@ export const EventDetailPage = () => {
       const response = await api.post(
         `/api/events/${id}/certificates/send/`,
         { method, participant_ids: participantIds.length > 0 ? participantIds : undefined },
-        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setSendResult({
@@ -188,11 +180,9 @@ export const EventDetailPage = () => {
     setIsSending(true);
     setSendResult(null);
     try {
-      const token = localStorage.getItem('access_token');
       const response = await api.post(
         `/api/events/${id}/certificates/send/`,
         { method },
-        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setSendResult({
@@ -209,11 +199,9 @@ export const EventDetailPage = () => {
 
   const handleGenerateCertificates = async () => {
     try {
-      const token = localStorage.getItem('access_token');
       await api.post(
         `/api/events/${id}/certificates/generate/`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
       );
       fetchEventData();
     } catch (error) {
@@ -224,11 +212,9 @@ export const EventDetailPage = () => {
   const handleEnrollParticipant = async () => {
     if (!newParticipantEmail) return;
     try {
-      const token = localStorage.getItem('access_token');
       await api.post(
         `/api/events/${id}/enroll/`,
         { participant_email: newParticipantEmail },
-        { headers: { Authorization: `Bearer ${token}` } }
       );
       setIsEnrollModalOpen(false);
       setNewParticipantEmail('');
@@ -240,11 +226,9 @@ export const EventDetailPage = () => {
 
   const handleToggleAttendance = async (enrollmentId: number, currentAttendance: boolean) => {
     try {
-      const token = localStorage.getItem('access_token');
       await api.patch(
         `/api/enrollments/${enrollmentId}/attendance/`,
         { attendance: !currentAttendance },
-        { headers: { Authorization: `Bearer ${token}` } }
       );
       fetchEventData();
     } catch (error) {
@@ -258,7 +242,6 @@ export const EventDetailPage = () => {
     setInviteResult(null);
     
     try {
-      const token = localStorage.getItem('access_token');
       const emails = inviteEmails.split(',').map(e => e.trim()).filter(e => e);
       
       const formData = new FormData();
@@ -267,7 +250,6 @@ export const EventDetailPage = () => {
       const response = await api.post(
         `/api/events/${id}/invitations/send/`,
         formData,
-        { headers: { Authorization: `Bearer ${token}` } }
       );
       
       setInviteResult(response.data);
@@ -284,11 +266,9 @@ export const EventDetailPage = () => {
   const handleSendAllInvitations = async () => {
     setIsSendingInvites(true);
     try {
-      const token = localStorage.getItem('access_token');
       const response = await api.post(
         `/api/events/${id}/invitations/send-all/`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
       );
       setInviteResult({ total: response.data.sent, created: response.data.sent, errors: response.data.errors || [] });
       fetchEventData();
@@ -301,10 +281,8 @@ export const EventDetailPage = () => {
 
   const loadInvitations = async () => {
     try {
-      const token = localStorage.getItem('access_token');
       const response = await api.get<Invitation[]>(
         `/api/events/${id}/invitations/`,
-        { headers: { Authorization: `Bearer ${token}` } }
       );
       setInvitations(response.data);
     } catch (error) {
@@ -314,11 +292,9 @@ export const EventDetailPage = () => {
 
   const handleFinalizeEvent = async (sendCertificates: boolean) => {
     try {
-      const token = localStorage.getItem('access_token');
       const response = await api.post(
         `/api/events/${id}/finalize/`,
         { send_certificates: sendCertificates },
-        { headers: { Authorization: `Bearer ${token}` } }
       );
       alert(`Evento finalizado. Certificados enviados: ${response.data.certificates_sent}`);
       fetchEventData();

@@ -481,6 +481,7 @@ const ByEventMode = () => {
   const [fontColor, setFontColor] = useState('#1e3a8a');
   const [instructorName, setInstructorName] = useState('');
   const [instructorSpecialty, setInstructorSpecialty] = useState('');
+  const [instructorSignatureUrl, setInstructorSignatureUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<EventGenerateResult | null>(null);
   const [step, setStep] = useState<'config' | 'result'>('config');
@@ -509,7 +510,13 @@ const ByEventMode = () => {
         y: eventData.name_y ?? 40,
       });
       setFontSize(eventData.name_font_size ?? 28);
+      setFontColor(eventData.font_color ?? '#1e3a8a');
       setInstructorName(eventData.instructor_name || '');
+      setInstructorSpecialty(eventData.instructor_specialty || '');
+      const sigUrl = eventData.instructor_signature
+        ? (eventData.instructor_signature.startsWith('http') ? eventData.instructor_signature : `${API_URL}${eventData.instructor_signature}`)
+        : null;
+      setInstructorSignatureUrl(sigUrl);
     }
   }, [eventData]);
 
@@ -557,6 +564,7 @@ const ByEventMode = () => {
           name_x: Math.round(namePosition.x),
           name_y: Math.round(namePosition.y),
           name_font_size: fontSize,
+          font_color: fontColor,
         },
       },
       {
@@ -611,6 +619,7 @@ const ByEventMode = () => {
     setFontColor('#1e3a8a');
     setInstructorName('');
     setInstructorSpecialty('');
+    setInstructorSignatureUrl(null);
     setError(null);
     setResult(null);
     setStep('config');
@@ -816,6 +825,16 @@ const ByEventMode = () => {
                       />
                     </div>
                   </div>
+                  {instructorSignatureUrl && (
+                    <div>
+                      <label className="text-xs font-bold text-secondary-600 uppercase tracking-wide block mb-2">Firma guardada</label>
+                      <img
+                        src={instructorSignatureUrl}
+                        alt="Firma del instructor"
+                        className="max-h-16 object-contain border border-secondary-200 rounded-lg p-2 bg-white"
+                      />
+                    </div>
+                  )}
                 </div>
               </Card>
 
