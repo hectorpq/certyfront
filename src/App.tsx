@@ -38,6 +38,16 @@ const ProtectedRoute = () => {
   return <Outlet />;
 };
 
+// ─── Admin Route (solo admin/coordinador) ────────────────────────────────────
+const AdminRoute = () => {
+  const { isAdmin, isLoadingUser } = useAuth();
+
+  if (isLoadingUser) return <PageLoader />;
+  if (!isAdmin) return <Navigate to="/dashboard" replace />;
+
+  return <Outlet />;
+};
+
 // ─── App ──────────────────────────────────────────────────────────────────────
 export const App = () => {
   return (
@@ -61,7 +71,9 @@ export const App = () => {
                 <Route path="/instructors"     element={<InstructorsPage />} />
                 <Route path="/certificates"    element={<CertificatesPage />} />
                 <Route path="/templates"       element={<TemplatesPage />} />
-                <Route path="/bulk-generate"   element={<BulkGeneratePage />} />
+                <Route element={<AdminRoute />}>
+                  <Route path="/bulk-generate"   element={<BulkGeneratePage />} />
+                </Route>
               </Route>
             </Route>
 

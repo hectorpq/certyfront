@@ -52,7 +52,7 @@ const PROGRESS_COLORS = [
 
 export const DashboardPage = () => {
   const { isDark, toggle } = useThemeContext();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { data: certificatesData } = useCertificates();
   const { data: participantsData } = useParticipants();
 
@@ -572,22 +572,24 @@ export const DashboardPage = () => {
         </div>
       </div>
 
-      {/* ── FAB ── */}
-      <Link to="/bulk-generate" style={{ position: 'fixed', bottom: 28, right: 28, textDecoration: 'none', zIndex: 30 }}>
-        <button style={{
-          width: 56, height: 56, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #1E40AF, #2563EB, #3B82F6)',
-          border: 'none', cursor: 'pointer', color: '#fff',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 8px 28px rgba(37,99,235,0.50)',
-          transition: 'all 200ms ease',
-        }}
-        onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.10)'; e.currentTarget.style.boxShadow = '0 14px 36px rgba(37,99,235,0.60)'; }}
-        onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(37,99,235,0.50)'; }}
-        >
-          <Plus style={{ width: 24, height: 24 }} />
-        </button>
-      </Link>
+      {/* ── FAB (solo admin/coordinador) ── */}
+      {isAdmin && (
+        <Link to="/bulk-generate" style={{ position: 'fixed', bottom: 28, right: 28, textDecoration: 'none', zIndex: 30 }}>
+          <button style={{
+            width: 56, height: 56, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #1E40AF, #2563EB, #3B82F6)',
+            border: 'none', cursor: 'pointer', color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 8px 28px rgba(37,99,235,0.50)',
+            transition: 'all 200ms ease',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.10)'; e.currentTarget.style.boxShadow = '0 14px 36px rgba(37,99,235,0.60)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(37,99,235,0.50)'; }}
+          >
+            <Plus style={{ width: 24, height: 24 }} />
+          </button>
+        </Link>
+      )}
 
     </div>
   );
