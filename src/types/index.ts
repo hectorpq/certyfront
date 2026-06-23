@@ -80,12 +80,56 @@ export interface Event {
   status_display?: string;
   template?: number;
   template_name?: string | null;
+  template_image?: string;
+  name_font_size?: number;
+  name_x?: number;
+  name_y?: number;
   is_deleted: boolean;
   deleted_at: string | null;
   deleted_by: number | null;
   deleted_by_detail: { id: number; full_name: string; email: string } | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface EnrolledParticipant {
+  enrollment_id: number;
+  participant_id: number;
+  participant_name: string;
+  participant_email: string;
+  participant_phone: string;
+  attendance: boolean;
+  certificate_id: number | null;
+  certificate_status: string | null;
+  certificate_status_display: string | null;
+  verification_code: string | null;
+  has_certificate: boolean;
+}
+
+export interface EventGenerateResult {
+  event_id: number;
+  event_name: string;
+  total_enrollments: number;
+  created: number;
+  already_exists: number;
+  errors: number;
+  results: {
+    created: Array<{
+      participant_id: number;
+      participant_name: string;
+      certificate_id: number;
+      status: string;
+    }>;
+    already_exists: Array<{
+      participant_id: number;
+      participant_name: string;
+    }>;
+    errors: Array<{
+      participant_id: number;
+      participant_name: string;
+      error: string;
+    }>;
+  };
 }
 
 export interface Instructor {

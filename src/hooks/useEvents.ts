@@ -57,3 +57,22 @@ export const useRestoreEvent = () => {
     },
   });
 };
+
+export const useEventParticipants = (id: number) => {
+  return useQuery({
+    queryKey: ['event', id, 'participants'],
+    queryFn: () => eventService.getParticipants(id),
+    enabled: !!id,
+  });
+};
+
+export const useEventGenerateCertificates = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, participantIds }: { id: number; participantIds?: number[] }) =>
+      eventService.generateCertificates(id, participantIds),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['event', id, 'participants'] });
+    },
+  });
+};
