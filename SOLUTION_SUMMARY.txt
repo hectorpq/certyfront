@@ -113,7 +113,7 @@ OPCIÓN 1: Ejecutar Localmente (Recomendado para verificar)
 
 OPCIÓN 2: Ejecutar Jenkins Pipeline (Principal)
 ──────────────────────────────────────────────────
-  1. Abre: http://localhost:8080
+  1. Abre: http://localhost:9080
   2. Jenkins → certyFrontend job
   3. Haz clic: "Build Now"
   4. Espera: ~5-10 minutos
@@ -124,7 +124,7 @@ OPCIÓN 3: Análisis SonarQube Local (Avanzado)
   $env:SONAR_TOKEN = 'tu-token-de-sonarqube'
   .\run-sonarqube-analysis.ps1
   
-  ✅ Luego ver resultados en: http://localhost:9000
+  ✅ Luego ver resultados en: http://localhost:9001
 
 ═══════════════════════════════════════════════════════════════
 🔍 VERIFICACIÓN

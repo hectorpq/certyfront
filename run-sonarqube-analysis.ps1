@@ -4,7 +4,7 @@
 # Uso: .\run-sonarqube-analysis.ps1
 
 param(
-    [string]$SonarHost = "http://localhost:9000",
+    [string]$SonarHost = "http://localhost:9001",
     [string]$SonarToken = ""
 )
 
