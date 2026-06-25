@@ -10,8 +10,8 @@ pipeline {
                         sh 'npm install'
                         
                         echo 'Fase 2: Ejecutando pruebas unitarias...'
-                        // 🛠️ CORRECCIÓN: Usamos la sintaxis limpia de Vitest para CI
-                        sh 'npm run test -- run'
+                        // 🛠️ SINTAXIS EXACTA: Ejecuta las pruebas en modo único y genera cobertura
+                        sh 'npm run test'
                         
                         echo 'Fase 3: Compilando el proyecto...'
                         sh 'npm run build'
