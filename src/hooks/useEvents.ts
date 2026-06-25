@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { eventService } from '@/services/eventService';
 import type { Event } from '@/types';
 
-export const useEvents = (params?: { page?: number; search?: string; status?: string; category?: number }) => {
+export const useEvents = (params?: { page?: number; search?: string; status?: string; category?: number; show_deleted?: boolean }) => {
   return useQuery({
     queryKey: ['events', params],
     queryFn: () => eventService.getAll(params),
@@ -44,6 +44,35 @@ export const useDeleteEvent = () => {
     mutationFn: eventService.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
+    },
+  });
+};
+
+export const useRestoreEvent = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: eventService.restore,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+    },
+  });
+};
+
+export const useEventParticipants = (id: number) => {
+  return useQuery({
+    queryKey: ['event', id, 'participants'],
+    queryFn: () => eventService.getParticipants(id),
+    enabled: !!id,
+  });
+};
+
+export const useEventGenerateCertificates = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, participantIds }: { id: number; participantIds?: number[] }) =>
+      eventService.generateCertificates(id, participantIds),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['event', id, 'participants'] });
     },
   });
 };

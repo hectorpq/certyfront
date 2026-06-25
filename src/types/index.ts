@@ -44,7 +44,7 @@ export interface LoginResponse {
   };
 }
 
-export interface Student {
+export interface Participant {
   id: number;
   document_id: string;
   first_name: string;
@@ -53,6 +53,11 @@ export interface Student {
   email: string;
   phone: string;
   is_active: boolean;
+  is_deleted: boolean;
+  deleted_at: string | null;
+  deleted_by: number | null;
+  deleted_by_detail: { id: number; full_name: string; email: string } | null;
+  created_by: number;
   created_at: string;
   updated_at: string;
 }
@@ -65,6 +70,8 @@ export interface Event {
   created_by_name?: string;
   instructor?: number;
   instructor_name?: string | null;
+  instructor_specialty?: string | null;
+  instructor_signature?: string | null;
   name: string;
   description: string;
   event_date: string;
@@ -75,8 +82,57 @@ export interface Event {
   status_display?: string;
   template?: number;
   template_name?: string | null;
+  template_image?: string;
+  font_color?: string;
+  name_font_size?: number;
+  name_x?: number;
+  name_y?: number;
+  is_deleted: boolean;
+  deleted_at: string | null;
+  deleted_by: number | null;
+  deleted_by_detail: { id: number; full_name: string; email: string } | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface EnrolledParticipant {
+  enrollment_id: number;
+  participant_id: number;
+  participant_name: string;
+  participant_email: string;
+  participant_phone: string;
+  attendance: boolean;
+  certificate_id: number | null;
+  certificate_status: string | null;
+  certificate_status_display: string | null;
+  verification_code: string | null;
+  has_certificate: boolean;
+}
+
+export interface EventGenerateResult {
+  event_id: number;
+  event_name: string;
+  total_enrollments: number;
+  created: number;
+  already_exists: number;
+  errors: number;
+  results: {
+    created: Array<{
+      participant_id: number;
+      participant_name: string;
+      certificate_id: number;
+      status: string;
+    }>;
+    already_exists: Array<{
+      participant_id: number;
+      participant_name: string;
+    }>;
+    errors: Array<{
+      participant_id: number;
+      participant_name: string;
+      error: string;
+    }>;
+  };
 }
 
 export interface Instructor {
@@ -93,7 +149,7 @@ export interface Instructor {
 export interface Certificate {
   [x: string]: any;
   id: number;
-  student: {
+  participant: {
     id: number;
     full_name: string;
     email: string;
@@ -102,8 +158,13 @@ export interface Certificate {
   event: {
     id: number;
     name: string;
-    event_date: string;
-    category?: string;
+    event_date?: string | null;
+    end_date?: string | null;
+    description?: string;
+    location?: string;
+    duration_hours?: number | null;
+    instructor_name?: string | null;
+    category?: string | number | null;
   };
   template?: number;
   status: 'pending' | 'generated' | 'sent' | 'failed';
@@ -178,5 +239,5 @@ export interface DashboardStats {
   sent_certificates: number;
   failed_certificates: number;
   active_events: number;
-  total_students: number;
+  total_participants: number;
 }

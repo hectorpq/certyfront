@@ -1,10 +1,11 @@
 import { Award, Users, Clock, CheckCircle, XCircle, FileSpreadsheet, Plus, TrendingUp, Bell, Search, ChevronDown, Sun, Moon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import { useCertificates } from '@/hooks/useCertificates';
-import { useStudents } from '@/hooks/useStudents';
-import { useThemeContext } from '@/App';
+import { useParticipants } from '@/hooks/useParticipants';
+import { useThemeContext } from '@/contexts/ThemeContext';
 import {
-  LineChart, Line, BarChart, Bar, Cell,
+  LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend,
 } from 'recharts';
@@ -51,13 +52,14 @@ const PROGRESS_COLORS = [
 
 export const DashboardPage = () => {
   const { isDark, toggle } = useThemeContext();
+  const { user, isAdmin } = useAuth();
   const { data: certificatesData } = useCertificates();
-  const { data: studentsData } = useStudents();
+  const { data: participantsData } = useParticipants();
 
   const total = certificatesData?.count || 0;
   const sentCount = certificatesData?.results?.filter(c => c.status === 'sent').length || 0;
   const successRate = total ? Math.round((sentCount / total) * 100) : 0;
-  const kpiValues = [total, studentsData?.count || 0, 0];
+  const kpiValues = [total, participantsData?.count || 0, 0];
 
   const monthlyData = (() => {
     const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -136,7 +138,7 @@ export const DashboardPage = () => {
           >
             {isDark
               ? <Sun style={{ width: 17, height: 17, color: '#F4B400' }} />
-              : <Moon style={{ width: 17, height: 17, color: '#475569' }} />
+              : <Moon style={{ width: 17, height: 17, color: 'var(--text-secondary)' }} />
             }
           </button>
 
@@ -171,11 +173,13 @@ export const DashboardPage = () => {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 2px 8px rgba(37,99,235,0.35)',
             }}>
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#fff' }}>AD</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#fff' }}>
+                {user?.full_name?.split(' ').map(n => n[0]).slice(0, 2).join('')?.toUpperCase() || 'AD'}
+              </span>
             </div>
             <div>
-              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', margin: 0, lineHeight: 1.2 }}>Admin</p>
-              <p style={{ fontSize: 10, color: 'var(--text-muted)', margin: 0 }}>Administrador</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', margin: 0, lineHeight: 1.2 }}>{user?.full_name || 'Admin'}</p>
+              <p style={{ fontSize: 10, color: 'var(--text-muted)', margin: 0 }}>{user?.role === 'admin' ? 'Administrador' : user?.full_name || 'Administrador'}</p>
             </div>
             <ChevronDown style={{ width: 13, height: 13, color: 'var(--text-muted)' }} />
           </div>
@@ -221,7 +225,7 @@ export const DashboardPage = () => {
             fontSize: 28, fontWeight: 700, color: '#fff',
             margin: '0 0 8px', lineHeight: 1.2,
           }}>
-            ¡Bienvenido, Admin! 👋
+            ¡Bienvenido, {user?.full_name?.split(' ')[0] || 'Admin'}!
           </h1>
           <p style={{ fontSize: 14, color: isDark ? 'rgba(160,174,192,0.90)' : 'rgba(186,216,255,0.88)', margin: 0, maxWidth: 380 }}>
             Gestiona y protege tus certificaciones con{' '}
@@ -521,15 +525,15 @@ export const DashboardPage = () => {
                   fontSize: 12, fontWeight: 700, color: av.text,
                   boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                 }}>
-                  {cert.recipient_name?.split(' ').map((n: string) => n[0]).slice(0, 2).join('') ?? '??'}
+                  {cert.participant?.full_name?.split(' ').map((n: string) => n[0]).slice(0, 2).join('') ?? '??'}
                 </div>
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {cert.recipient_name ?? 'Desconocido'}
+                    {cert.participant?.full_name ?? 'Desconocido'}
                   </p>
                   <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '2px 0 0' }}>
-                    {cert.template_name ?? 'Certificado'}
+                    Certificado
                   </p>
                 </div>
 
@@ -568,22 +572,24 @@ export const DashboardPage = () => {
         </div>
       </div>
 
-      {/* ── FAB ── */}
-      <Link to="/bulk-generate" style={{ position: 'fixed', bottom: 28, right: 28, textDecoration: 'none', zIndex: 30 }}>
-        <button style={{
-          width: 56, height: 56, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #1E40AF, #2563EB, #3B82F6)',
-          border: 'none', cursor: 'pointer', color: '#fff',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 8px 28px rgba(37,99,235,0.50)',
-          transition: 'all 200ms ease',
-        }}
-        onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.10)'; e.currentTarget.style.boxShadow = '0 14px 36px rgba(37,99,235,0.60)'; }}
-        onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(37,99,235,0.50)'; }}
-        >
-          <Plus style={{ width: 24, height: 24 }} />
-        </button>
-      </Link>
+      {/* ── FAB (solo admin/coordinador) ── */}
+      {isAdmin && (
+        <Link to="/bulk-generate" style={{ position: 'fixed', bottom: 28, right: 28, textDecoration: 'none', zIndex: 30 }}>
+          <button style={{
+            width: 56, height: 56, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #1E40AF, #2563EB, #3B82F6)',
+            border: 'none', cursor: 'pointer', color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 8px 28px rgba(37,99,235,0.50)',
+            transition: 'all 200ms ease',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.10)'; e.currentTarget.style.boxShadow = '0 14px 36px rgba(37,99,235,0.60)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(37,99,235,0.50)'; }}
+          >
+            <Plus style={{ width: 24, height: 24 }} />
+          </button>
+        </Link>
+      )}
 
     </div>
   );

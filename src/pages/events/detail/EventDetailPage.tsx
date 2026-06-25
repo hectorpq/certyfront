@@ -19,12 +19,12 @@ interface EventStats {
   failed_certificates: number;
 }
 
-interface Participant {
+interface EnrolledParticipant {
   enrollment_id: number;
-  student_id: number;
-  student_name: string;
-  student_email: string;
-  student_phone: string;
+  participant_id: number;
+  participant_name: string;
+  participant_email: string;
+  participant_phone: string;
   attendance: boolean;
   certificate_id: number | null;
   certificate_status: string | null;
@@ -53,8 +53,8 @@ interface Invitation {
   id: number;
   event: number;
   event_name: string;
-  student: number | null;
-  student_name: string | null;
+  participant: number | null;
+  participant_name: string | null;
   email: string;
   token: string;
   status: string;
@@ -69,11 +69,11 @@ type TabType = 'participants' | 'certificates' | 'deliveries' | 'invitations';
 
 export const EventDetailPage = () => {
   const { id } = useParams<{ id: string }>();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('participants');
   const [event, setEvent] = useState<Event | null>(null);
   const [stats, setStats] = useState<EventStats | null>(null);
-  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [participants, setParticipants] = useState<EnrolledParticipant[]>([]);
   const [deliveries, setDeliveries] = useState<DeliveryLog[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [selectedParticipants, setSelectedParticipants] = useState<number[]>([]);
@@ -81,26 +81,30 @@ export const EventDetailPage = () => {
   const [isSending, setIsSending] = useState(false);
   const [sendResult, setSendResult] = useState<{ sent: number; failed: number } | null>(null);
   const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
-  const [newStudentEmail, setNewStudentEmail] = useState('');
+  const [newParticipantEmail, setNewParticipantEmail] = useState('');
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [inviteEmails, setInviteEmails] = useState('');
   const [isSendingInvites, setIsSendingInvites] = useState(false);
-const [inviteResult, setInviteResult] = useState<{ total: number; created: number; errors: string[] } | null>(null);
+  const [inviteResult, setInviteResult] = useState<{ total: number; created: number; errors: string[] } | null>(null);
 
   const fetchEventData = async () => {
     try {
-      const token = localStorage.getItem('access_token');
-      const headers = { Authorization: `Bearer ${token}` };
-
-      const [eventRes, statsRes, participantsRes] = await Promise.all([
-        api.get<Event>(`/api/events/${id}/`, { headers }),
-        api.get<EventStats>(`/api/events/${id}/stats/`, { headers }),
-        api.get<Participant[]>(`/api/events/${id}/participants/`, { headers }),
+      const [eventRes, statsRes] = await Promise.all([
+        api.get<Event>(`/api/events/${id}/`),
+        api.get<EventStats>(`/api/events/${id}/stats/`),
       ]);
 
       setEvent(eventRes.data);
       setStats(statsRes.data);
-      setParticipants(participantsRes.data);
+
+      if (isAdmin || eventRes.data.created_by === user?.id) {
+        try {
+          const participantsRes = await api.get<EnrolledParticipant[]>(`/api/events/${id}/participants/`);
+          setParticipants(participantsRes.data);
+        } catch {
+          setParticipants([]);
+        }
+      }
     } catch (error) {
       console.error('Error fetching event data:', error);
     } finally {
@@ -110,10 +114,7 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
 
   const fetchDeliveries = async () => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await api.get<DeliveryLog[]>(`/api/events/${id}/deliveries/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get<DeliveryLog[]>(`/api/events/${id}/deliveries/`);
       setDeliveries(response.data);
     } catch (error) {
       console.error('Error fetching deliveries:', error);
@@ -153,15 +154,13 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
     setIsSending(true);
     setSendResult(null);
     try {
-      const token = localStorage.getItem('access_token');
-      const studentIds = participants
+      const participantIds = participants
         .filter(p => selectedParticipants.includes(p.enrollment_id) && p.certificate_id)
-        .map(p => p.student_id);
+        .map(p => p.participant_id);
 
       const response = await api.post(
         `/api/events/${id}/certificates/send/`,
-        { method, student_ids: studentIds.length > 0 ? studentIds : undefined },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { method, participant_ids: participantIds.length > 0 ? participantIds : undefined },
       );
 
       setSendResult({
@@ -181,11 +180,9 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
     setIsSending(true);
     setSendResult(null);
     try {
-      const token = localStorage.getItem('access_token');
       const response = await api.post(
         `/api/events/${id}/certificates/send/`,
         { method },
-        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setSendResult({
@@ -202,11 +199,9 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
 
   const handleGenerateCertificates = async () => {
     try {
-      const token = localStorage.getItem('access_token');
       await api.post(
         `/api/events/${id}/certificates/generate/`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
       );
       fetchEventData();
     } catch (error) {
@@ -214,30 +209,26 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
     }
   };
 
-  const handleEnrollStudent = async () => {
-    if (!newStudentEmail) return;
+  const handleEnrollParticipant = async () => {
+    if (!newParticipantEmail) return;
     try {
-      const token = localStorage.getItem('access_token');
       await api.post(
         `/api/events/${id}/enroll/`,
-        { student_email: newStudentEmail },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { participant_email: newParticipantEmail },
       );
       setIsEnrollModalOpen(false);
-      setNewStudentEmail('');
+      setNewParticipantEmail('');
       fetchEventData();
     } catch (error) {
-      console.error('Error enrolling student:', error);
+      console.error('Error enrolling participant:', error);
     }
   };
 
   const handleToggleAttendance = async (enrollmentId: number, currentAttendance: boolean) => {
     try {
-      const token = localStorage.getItem('access_token');
       await api.patch(
         `/api/enrollments/${enrollmentId}/attendance/`,
         { attendance: !currentAttendance },
-        { headers: { Authorization: `Bearer ${token}` } }
       );
       fetchEventData();
     } catch (error) {
@@ -251,7 +242,6 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
     setInviteResult(null);
     
     try {
-      const token = localStorage.getItem('access_token');
       const emails = inviteEmails.split(',').map(e => e.trim()).filter(e => e);
       
       const formData = new FormData();
@@ -260,7 +250,6 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
       const response = await api.post(
         `/api/events/${id}/invitations/send/`,
         formData,
-        { headers: { Authorization: `Bearer ${token}` } }
       );
       
       setInviteResult(response.data);
@@ -277,11 +266,9 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
   const handleSendAllInvitations = async () => {
     setIsSendingInvites(true);
     try {
-      const token = localStorage.getItem('access_token');
       const response = await api.post(
         `/api/events/${id}/invitations/send-all/`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
       );
       setInviteResult({ total: response.data.sent, created: response.data.sent, errors: response.data.errors || [] });
       fetchEventData();
@@ -294,10 +281,8 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
 
   const loadInvitations = async () => {
     try {
-      const token = localStorage.getItem('access_token');
       const response = await api.get<Invitation[]>(
         `/api/events/${id}/invitations/`,
-        { headers: { Authorization: `Bearer ${token}` } }
       );
       setInvitations(response.data);
     } catch (error) {
@@ -307,11 +292,9 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
 
   const handleFinalizeEvent = async (sendCertificates: boolean) => {
     try {
-      const token = localStorage.getItem('access_token');
       const response = await api.post(
         `/api/events/${id}/finalize/`,
         { send_certificates: sendCertificates },
-        { headers: { Authorization: `Bearer ${token}` } }
       );
       alert(`Evento finalizado. Certificados enviados: ${response.data.certificates_sent}`);
       fetchEventData();
@@ -372,7 +355,7 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
         <Badge variant={event.status === 'active' ? 'success' : 'default'}>
           {event.status_display}
         </Badge>
-        {isAdmin && event.status !== 'finished' && (
+        {event.created_by === user?.id && event.status !== 'finished' && (
           <div className="flex gap-2">
             <Button variant="secondary" size="sm" onClick={() => handleFinalizeEvent(false)}>
               Finalizar Evento
@@ -409,6 +392,7 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
         </Alert>
       )}
 
+      {event.created_by === user?.id && (<>
       <Card>
         <div className="border-b border-secondary-100">
           <nav className="flex gap-1 px-4 pt-1">
@@ -514,13 +498,13 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
                             />
                           </td>
                           <td className="py-3 px-4 text-sm font-medium text-secondary-900">
-                            {participant.student_name}
+                            {participant.participant_name}
                           </td>
                           <td className="py-3 px-4 text-sm text-secondary-600">
-                            {participant.student_email}
+                            {participant.participant_email}
                           </td>
                           <td className="py-3 px-4 text-sm text-secondary-600">
-                            {participant.student_phone || '-'}
+                            {participant.participant_phone || '-'}
                           </td>
                           <td className="py-3 px-4 text-center">
                             {isAdmin ? (
@@ -603,7 +587,7 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
                       participants.filter(p => p.has_certificate).map((participant) => (
                         <tr key={participant.certificate_id} className="hover:bg-secondary-50/60 transition-colors">
                           <td className="py-3 px-4 text-sm font-medium text-secondary-900">
-                            {participant.student_name}
+                            {participant.participant_name}
                           </td>
                           <td className="py-3 px-4">
                             <Badge
@@ -750,7 +734,7 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
                       invitations.map((inv) => (
                         <tr key={inv.id} className="hover:bg-secondary-50/60 transition-colors">
                           <td className="py-3 px-4 text-sm text-secondary-900">{inv.email}</td>
-                          <td className="py-3 px-4 text-sm text-secondary-600">{inv.student_name || '-'}</td>
+                          <td className="py-3 px-4 text-sm text-secondary-600">{inv.participant_name || '-'}</td>
                           <td className="py-3 px-4">
                             <Badge
                               variant={
@@ -787,17 +771,17 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
       >
         <div className="space-y-4">
           <Input
-            label="Email del estudiante"
+            label="Email del participante"
             type="email"
-            value={newStudentEmail}
-            onChange={(e) => setNewStudentEmail(e.target.value)}
-            placeholder="estudiante@ejemplo.com"
+            value={newParticipantEmail}
+            onChange={(e) => setNewParticipantEmail(e.target.value)}
+            placeholder="participante@ejemplo.com"
           />
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="secondary" onClick={() => setIsEnrollModalOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleEnrollStudent}>
+            <Button onClick={handleEnrollParticipant}>
               Agregar
             </Button>
           </div>
@@ -835,6 +819,7 @@ const [inviteResult, setInviteResult] = useState<{ total: number; created: numbe
           </div>
         </div>
       </Modal>
+      </>)}
     </div>
   );
 };

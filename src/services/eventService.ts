@@ -1,5 +1,5 @@
 import api from './api';
-import type { Event, PaginatedResponse } from '@/types';
+import type { Event, PaginatedResponse, EnrolledParticipant, EventGenerateResult } from '@/types';
 
 export const eventService = {
   async getAll(params?: {
@@ -31,5 +31,22 @@ export const eventService = {
 
   async delete(id: number): Promise<void> {
     await api.delete(`/api/events/${id}/`);
+  },
+
+  async restore(id: number): Promise<void> {
+    await api.post(`/api/events/${id}/restore/`);
+  },
+
+  async getParticipants(id: number): Promise<EnrolledParticipant[]> {
+    const response = await api.get<EnrolledParticipant[]>(`/api/events/${id}/participants/`);
+    return response.data;
+  },
+
+  async generateCertificates(id: number, participantIds?: number[]): Promise<EventGenerateResult> {
+    const response = await api.post<EventGenerateResult>(
+      `/api/events/${id}/certificates/generate/`,
+      participantIds ? { participant_ids: participantIds } : {}
+    );
+    return response.data;
   },
 };
