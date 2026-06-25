@@ -19,8 +19,6 @@ pipeline {
                         sh 'ls -la coverage/ | head -20'
                         
                         echo '🚀 Fase 4: Análisis Estático SonarQube...'
-                        // Crear config temporal para SonarQube
-                        sh 'echo \'{"compilerOptions": {"moduleResolution": "node", "target": "es2020", "module": "esnext"}, "include": ["src/**/*"]}\' > tsconfig.sonar.json'
                         
                         def scannerHome = tool name: 'SonarQubeScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
                         
@@ -34,7 +32,6 @@ pipeline {
                                    "-Dsonar.sourceEncoding=UTF-8"
                             }
                         }
-                        sh 'rm -f tsconfig.sonar.json'
                     }
                 }
             }
