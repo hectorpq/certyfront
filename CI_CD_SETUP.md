@@ -34,7 +34,7 @@ Se ha **resuelto el problema** de la cobertura incorrectamente baja (12.6%) y el
 ### Paso 1️⃣: Ejecutar Jenkins Pipeline (5-10 minutos)
 
 ```bash
-1. Abre Jenkins: http://localhost:8080
+1. Abre Jenkins: http://localhost:9080
 2. Ve a: certyFrontend job
 3. Haz clic: "Build Now"
 4. Espera a que termine
@@ -52,7 +52,7 @@ Se ha **resuelto el problema** de la cobertura incorrectamente baja (12.6%) y el
 ### Paso 2️⃣: Verificar Resultados en SonarQube (1 minuto)
 
 ```bash
-1. Abre SonarQube: http://localhost:9000
+1. Abre SonarQube: http://localhost:9001
 2. Dashboard → certy-frontend project
 3. Verifica:
    ✅ Coverage: Debe mejorar de 12.6%
@@ -190,8 +190,8 @@ Issues:      Reducido con context ✅
 
 | Herramienta | URL | Credenciales |
 |-----------|-----|----------|
-| **Jenkins** | http://localhost:8080 | Tu usuario |
-| **SonarQube** | http://localhost:9000 | admin/admin |
+| **Jenkins** | http://localhost:9080 | Tu usuario |
+| **SonarQube** | http://localhost:9001 | admin/admin |
 | **Reporte Local** | coverage/lcov-report/index.html | N/A |
 
 ---

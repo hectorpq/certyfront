@@ -213,7 +213,7 @@ npm run test:coverage
 - Status: ✅ PASSED
 
 ### SonarQube
-- Dashboard: http://localhost:9000/dashboard?id=certy-frontend
+- Dashboard: http://localhost:9001/dashboard?id=certy-frontend
 - Coverage: Debe mejorar de 12.6%
 - Quality Gate: Más realista
 

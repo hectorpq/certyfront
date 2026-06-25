@@ -72,7 +72,7 @@ coverage/lcov-report/index.html
 
 ### Opción 2: Ejecutar en Jenkins
 
-1. **Accede a Jenkins**: `http://localhost:8080/job/CertySys-Frontend/`
+1. **Accede a Jenkins**: `http://localhost:9080/job/CertySys-Frontend/`
 
 2. **Construir ahora** (Build Now)
    - El pipeline ejecutará automáticamente:
@@ -98,7 +98,7 @@ coverage/lcov-report/index.html
 
 ### Si aún falla la Quality Gate:
 
-1. **Accede a SonarQube**: `http://localhost:9000`
+1. **Accede a SonarQube**: `http://localhost:9001`
    - Usuario/contraseña por defecto: `admin/admin`
 
 2. **Ve al proyecto**: `Projects` → `certy-frontend`
