@@ -1,10 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { authService } from '@/services/authService';
+
+let mockNavigate = vi.fn();
 
 vi.mock('@/services/authService', () => ({
   authService: {
@@ -22,7 +24,7 @@ vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
-    useNavigate: vi.fn(() => vi.fn()),
+    useNavigate: () => mockNavigate,
   };
 });
 
@@ -44,6 +46,7 @@ const createWrapper = () => {
 describe('useAuth hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockNavigate = vi.fn();
     localStorage.clear();
   });
 
@@ -165,5 +168,214 @@ describe('useAuth hook', () => {
     });
 
     expect(result.current.error).toBe('Test error');
+  });
+
+  describe('login', () => {
+    it('handles successful login and navigates to dashboard', async () => {
+      const mockAuthService = authService as any;
+      mockAuthService.getAccessToken.mockReturnValue(null);
+
+      const loginResponse = {
+        access: 'new-access-token',
+        refresh: 'new-refresh-token',
+        user: {
+          id: 1,
+          email: 'test@example.com',
+          full_name: 'Test User',
+          role: 'admin',
+          is_staff: true,
+        },
+      };
+      mockAuthService.login.mockResolvedValueOnce(loginResponse);
+
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.login({ email: 'test@example.com', password: 'correct' });
+      });
+
+      await waitFor(() => {
+        expect(mockAuthService.setTokens).toHaveBeenCalledWith('new-access-token', 'new-refresh-token');
+      });
+
+      expect(mockAuthService.login).toHaveBeenCalledWith('test@example.com', 'correct');
+      expect(result.current.error).toBeNull();
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+    });
+
+    it('handles login with missing optional user fields', async () => {
+      const mockAuthService = authService as any;
+      mockAuthService.getAccessToken.mockReturnValue(null);
+
+      const loginResponse = {
+        access: 'token',
+        refresh: 'refresh',
+        user: {
+          id: 2,
+          email: 'user@example.com',
+          full_name: 'Regular User',
+        },
+      };
+      mockAuthService.login.mockResolvedValueOnce(loginResponse);
+
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.login({ email: 'user@example.com', password: 'pass' });
+      });
+
+      await waitFor(() => {
+        expect(mockAuthService.setTokens).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('loginWithGoogle', () => {
+    it('handles successful Google login', async () => {
+      const mockAuthService = authService as any;
+      mockAuthService.getAccessToken.mockReturnValue(null);
+
+      const googleResponse = {
+        access: 'google-access-token',
+        refresh: 'google-refresh-token',
+        user: {
+          id: 3,
+          email: 'google@example.com',
+          full_name: 'Google User',
+          role: 'participante',
+        },
+        is_new_user: false,
+      };
+      mockAuthService.loginWithGoogle.mockResolvedValueOnce(googleResponse);
+
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.loginWithGoogle('google-token');
+      });
+
+      await waitFor(() => {
+        expect(mockAuthService.setTokens).toHaveBeenCalledWith('google-access-token', 'google-refresh-token');
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+    });
+
+    it('sets error on Google login failure', async () => {
+      const mockAuthService = authService as any;
+      mockAuthService.getAccessToken.mockReturnValue(null);
+
+      const error = { response: { data: { error: 'Invalid Google token' } } };
+      mockAuthService.loginWithGoogle.mockRejectedValueOnce(error);
+
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.loginWithGoogle('invalid-token');
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toBe('Invalid Google token');
+      });
+    });
+  });
+
+  describe('register', () => {
+    it('handles successful registration and navigates to login', async () => {
+      const mockAuthService = authService as any;
+      mockAuthService.getAccessToken.mockReturnValue(null);
+
+      mockAuthService.register.mockResolvedValueOnce({
+        id: 4,
+        email: 'new@example.com',
+        full_name: 'New User',
+        message: 'Registered successfully',
+      });
+
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.register({
+          email: 'new@example.com',
+          full_name: 'New User',
+          password: 'securepass123',
+          password_confirm: 'securepass123',
+        });
+      });
+
+      await waitFor(() => {
+        expect(mockAuthService.register).toHaveBeenCalled();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('/login');
+    });
+
+    it('sets error on registration failure with structured errors', async () => {
+      const mockAuthService = authService as any;
+      mockAuthService.getAccessToken.mockReturnValue(null);
+
+      const error = {
+        response: {
+          data: {
+            email: ['Este correo ya está registrado'],
+            password: ['La contraseña debe tener al menos 8 caracteres'],
+          },
+        },
+      };
+      mockAuthService.register.mockRejectedValueOnce(error);
+
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.register({
+          email: 'existing@example.com',
+          full_name: 'User',
+          password: '123',
+          password_confirm: '123',
+        });
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toContain('Este correo ya está registrado');
+      });
+
+      expect(result.current.error).toContain('La contraseña debe tener al menos 8 caracteres');
+    });
+
+    it('sets default error message when no error data returned', async () => {
+      const mockAuthService = authService as any;
+      mockAuthService.getAccessToken.mockReturnValue(null);
+
+      mockAuthService.register.mockRejectedValueOnce(new Error('Network error'));
+
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.register({
+          email: 'test@example.com',
+          full_name: 'Test',
+          password: 'pass',
+          password_confirm: 'pass',
+        });
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toBe('Error al registrar. Verifica los datos.');
+      });
+    });
   });
 });
