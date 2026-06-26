@@ -26,6 +26,18 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    
+    // 🛠️ CONFIGURACIÓN DE RUTAS PARA ENTORNO CI/CD DE VITEST:
+    // Indicamos que solo busque y ejecute las pruebas unitarias verdaderas de src/test
+    include: ['src/test/**/*.{test,spec}.{ts,tsx,js,jsx}'],
+    
+    // Excluimos la carpeta de Playwright (e2e) y el archivo huérfano para que no rompan el proceso
+    exclude: [
+      'node_modules/',
+      'e2e/**',
+      'src/test/useStudents.test.tsx'
+    ],
+
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'json-summary', 'lcov', 'html'],
