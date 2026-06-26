@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import { Award, Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Button, Input } from '@/components/ui';
@@ -27,6 +27,8 @@ type LoginForm = z.infer<typeof loginSchema>;
 const EmailLoginForm = () => {
   const { login, isLoggingIn, error } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [searchParams] = useSearchParams();
+  const prefilledEmail = searchParams.get('email') || '';
 
   const {
     register,
@@ -34,6 +36,10 @@ const EmailLoginForm = () => {
     formState: { errors },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: prefilledEmail,
+      password: '',
+    },
   });
 
   const onSubmit = (data: LoginForm) => {

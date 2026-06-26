@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Award, Mail, Lock, User, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { Button, Input } from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
@@ -25,6 +25,8 @@ export const RegisterPage = () => {
   const { register: registerUser, isRegistering, error } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [searchParams] = useSearchParams();
+  const prefilledEmail = searchParams.get('email') || '';
 
   const {
     register,
@@ -32,6 +34,12 @@ export const RegisterPage = () => {
     formState: { errors },
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      email: prefilledEmail,
+      full_name: '',
+      password: '',
+      password_confirm: '',
+    },
   });
 
   const onSubmit = (data: RegisterForm) => {

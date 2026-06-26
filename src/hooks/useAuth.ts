@@ -24,10 +24,10 @@ export const useAuth = () => {
       authService.login(email, password),
     onSuccess: (data: LoginResponse) => {
       authService.setTokens(data.access, data.refresh);
-      
+
       const userRole = data.user.role || 'participante';
       const userIsStaff = data.user.is_staff ?? false;
-      
+
       queryClient.setQueryData(['currentUser'], {
         id: data.user.id,
         email: data.user.email,
@@ -37,7 +37,9 @@ export const useAuth = () => {
         is_staff: userIsStaff,
       });
       setError(null);
-      navigate('/dashboard');
+      // Si el backend devuelve redirect_url (porque el usuario vino desde
+      // una invitación), navegar al detalle del evento; si no, al dashboard.
+      navigate(data.redirect_url || '/dashboard');
     },
     onError: (err: { response?: { data?: { detail?: string } } }) => {
       console.error('Login error:', err);
@@ -69,9 +71,27 @@ export const useAuth = () => {
 
   const registerMutation = useMutation({
     mutationFn: authService.register,
-    onSuccess: () => {
+    onSuccess: (data: LoginResponse & { redirect_url?: string }) => {
+      // El backend ahora hace auto-login tras el registro y devuelve los
+      // tokens JWT (especialmente útil cuando el usuario vino desde una
+      // invitación).
+      if (data.access && data.refresh) {
+        authService.setTokens(data.access, data.refresh);
+        if (data.user) {
+          queryClient.setQueryData(['currentUser'], {
+            id: data.user.id,
+            email: data.user.email,
+            full_name: data.user.full_name,
+            role: data.user.role || 'participante',
+            is_active: true,
+            is_staff: data.user.is_staff ?? false,
+          });
+        }
+      }
       setError(null);
-      navigate('/login');
+      // Si el backend devuelve redirect_url (porque el usuario vino desde
+      // una invitación), navegar al detalle del evento; si no, al login.
+      navigate(data.redirect_url || '/login');
     },
     onError: (err: { response?: { data?: unknown } }) => {
       const errors = err.response?.data as Record<string, unknown> | undefined;

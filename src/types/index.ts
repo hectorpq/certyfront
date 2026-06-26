@@ -42,6 +42,13 @@ export interface LoginResponse {
     role?: 'admin' | 'coordinador' | 'participante';
     is_staff?: boolean;
   };
+  /**
+   * Cuando el usuario llega desde un enlace de invitación, el backend
+   * incluye aquí la URL a la que el frontend debe navegar tras la
+   * autenticación (por ejemplo `/events/123`). Si no existe, navegar
+   * a la página por defecto (`/dashboard` o `/login` según el flujo).
+   */
+  redirect_url?: string;
 }
 
 export interface Participant {

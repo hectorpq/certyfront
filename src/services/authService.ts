@@ -22,8 +22,11 @@ export const authService = {
     full_name: string;
     password: string;
     password_confirm: string;
-  }): Promise<{ id: number; email: string; full_name: string; message: string }> {
-    const response = await api.post('/api/register/', data);
+  }): Promise<LoginResponse & { id: number; message: string }> {
+    const response = await api.post<LoginResponse & { id: number; message: string }>(
+      '/api/register/',
+      data,
+    );
     return response.data;
   },
 

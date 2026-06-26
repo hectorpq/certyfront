@@ -38,13 +38,42 @@ export const InvitationPage = () => {
   useEffect(() => {
     const fetchInvitation = async () => {
       try {
-        const response = await api.get<InvitationDetail>(`/api/invitations/${token}/`);
-        setInvitation(response.data);
+        const response = await api.get<InvitationDetail & {
+          login_url?: string;
+          register_url?: string;
+          event_id?: number;
+        }>(`/api/invitations/${token}/`);
+        const data = response.data;
+        setInvitation(data);
 
-        if (response.data.status === 'accepted') {
+        if (data.status === 'accepted') {
           setError('Esta invitación ya fue aceptada');
-        } else if (response.data.status === 'expired') {
+        } else if (data.status === 'expired') {
           setError('Esta invitación ha expirado');
+        } else if (data.status === 'pending' || data.status === 'sent') {
+          // Si el usuario ya está autenticado, el backend se encarga de
+          // crear el Participant si no existe, inscribirlo y aceptar la
+          // invitación. Sólo necesitamos llamar a /accept/.
+          if (isAuthenticated && user) {
+            try {
+              await api.post(`/api/invitations/${token}/accept/`);
+              navigate(`/events/${data.event_id}`);
+              return;
+            } catch (err) {
+              const e = err as { response?: { data?: { error?: string } } };
+              setError(e.response?.data?.error || 'Error al aceptar invitación');
+              return;
+            }
+          }
+
+          // No autenticado: redirigir al flujo general de login/registro
+          // con el email pre-rellenado. La sesión ya guardó el token.
+          if (data.participant_exists) {
+            navigate(data.login_url || `/login?email=${encodeURIComponent(data.email)}`);
+          } else {
+            navigate(data.register_url || `/register?email=${encodeURIComponent(data.email)}`);
+          }
+          return;
         }
       } catch (err: unknown) {
         console.error('Error fetching invitation:', err);
@@ -59,7 +88,7 @@ export const InvitationPage = () => {
     if (token) {
       fetchInvitation();
     }
-  }, [token, isAuthenticated, user]);
+  }, [token, isAuthenticated, user, navigate]);
 
   const handleAccept = async () => {
     if (!token) return;
@@ -83,21 +112,25 @@ export const InvitationPage = () => {
       setError('Las contraseñas no coinciden');
       return;
     }
-    
+
     if (!token) return;
-    
+
     setIsRegistering(true);
     setError(null);
-    
+
     try {
-      await api.post(`/api/invitations/${token}/register/`, {
+      const response = await api.post<{
+        message?: string;
+        redirect_url?: string;
+        event?: string;
+      }>(`/api/invitations/${token}/register/`, {
         first_name: formData.first_name,
         last_name: formData.last_name,
         phone: formData.phone,
         password: formData.password,
       });
-      // Redirect to dashboard after registering
-      navigate('/dashboard');
+      // Redirigir al evento si el backend lo indica, si no al dashboard
+      navigate(response.data.redirect_url || '/dashboard');
     } catch (err: unknown) {
       const error = err as { response?: { data?: { error?: string; [key: string]: unknown } } };
       const errors = error.response?.data;
