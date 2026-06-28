@@ -66,13 +66,9 @@ export const InvitationPage = () => {
             }
           }
 
-          // No autenticado: redirigir al flujo general de login/registro
-          // con el email pre-rellenado. La sesión ya guardó el token.
-          if (data.participant_exists) {
-            navigate(data.login_url || `/login?email=${encodeURIComponent(data.email)}`);
-          } else {
-            navigate(data.register_url || `/register?email=${encodeURIComponent(data.email)}`);
-          }
+          // No autenticado: no redirigir, dejar que el JSX muestre
+          // el formulario de registro en esta misma página.
+          setIsLoading(false);
           return;
         }
       } catch (err: unknown) {
@@ -92,12 +88,12 @@ export const InvitationPage = () => {
 
   const handleAccept = async () => {
     if (!token) return;
-    
     setIsRegistering(true);
     try {
-      await api.post(`/api/invitations/${token}/accept/`);
-      // Redirect to dashboard after accepting
-      navigate('/dashboard');
+      const response = await api.post<{ redirect_url?: string; event_id?: number }>(
+        `/api/invitations/${token}/accept/`
+      );
+      navigate(response.data.redirect_url || `/events/${invitation?.event}`);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { error?: string } } };
       setError(error.response?.data?.error || 'Error al aceptar invitación');
