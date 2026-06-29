@@ -60,7 +60,10 @@ const ByExcelMode = () => {
     setError(null);
     previewExcel.mutate({ file }, {
       onSuccess: (data) => { setPreviewData(data); setStep('preview'); },
-      onError: (err) => setError((err as Error).message || 'Error al leer el archivo'),
+      onError: (err) => {
+        const axiosErr = err as { response?: { data?: { detail?: string; error?: string } } };
+        setError(axiosErr.response?.data?.detail || axiosErr.response?.data?.error || (err as Error).message || 'Error al leer el archivo');
+      },
     });
   };
 
@@ -86,7 +89,10 @@ const ByExcelMode = () => {
       { excelFile: selectedFile, eventId: Number(selectedEventId), templateImage, nameX: namePosition.x, nameY: namePosition.y, fontSize, fontColor, signatureImage: signatureImage ?? undefined, instructorName, instructorSpecialty },
       {
         onSuccess: (data) => { setResult(data); setStep('result'); },
-        onError: (err) => setError((err as Error).message || 'Error al generar certificados'),
+        onError: (err) => {
+          const axiosErr = err as { response?: { data?: { detail?: string; error?: string } } };
+          setError(axiosErr.response?.data?.detail || axiosErr.response?.data?.error || (err as Error).message || 'Error al generar certificados');
+        },
       },
     );
   };
