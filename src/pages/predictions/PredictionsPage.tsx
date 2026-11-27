@@ -114,6 +114,12 @@ const toInput = (f: FormState): PredictionInput => ({
 
 const pct = (v: number, digits = 0) => `${(v * 100).toFixed(digits)}%`;
 
+/** Reintenta solo si el servidor no respondio o dio 5xx (despertando/reiniciando); maximo 8 intentos. */
+const retryWhileWaking = (failureCount: number, error: unknown) => {
+  const status = (error as { response?: { status?: number } })?.response?.status;
+  return failureCount < 8 && (status === undefined || status >= 500);
+};
+
 // ─── Piezas de UI ─────────────────────────────────────────────────────────────
 
 const cardStyle = (isDark: boolean): CSSProperties => ({
@@ -275,9 +281,12 @@ export const PredictionsPage = () => {
   const [form, setForm] = useState<FormState>(DEFAULT_FORM);
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm(f => ({ ...f, [key]: value }));
 
-  const dashboardQ = useQuery({ queryKey: ['analytics', 'dashboard'], queryFn: analyticsService.getDashboard });
-  const modelQ = useQuery({ queryKey: ['analytics', 'model-info'], queryFn: analyticsService.getModelInfo, retry: false });
-  const predictM = useMutation({ mutationFn: analyticsService.predict });
+  // El backend (plan gratis) se duerme o reinicia: mientras despierta responde 502/503 o
+  // no responde. En esos casos se reintenta solo, hasta ~45 s, antes de mostrar error.
+  const wakeRetry = { retry: retryWhileWaking, retryDelay: 5000 };
+  const dashboardQ = useQuery({ queryKey: ['analytics', 'dashboard'], queryFn: analyticsService.getDashboard, ...wakeRetry });
+  const modelQ = useQuery({ queryKey: ['analytics', 'model-info'], queryFn: analyticsService.getModelInfo, ...wakeRetry });
+  const predictM = useMutation({ mutationFn: analyticsService.predict, ...wakeRetry });
 
   const series = isDark ? '#60A5FA' : '#2563EB';
   const gridStroke = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
@@ -497,7 +506,8 @@ export const PredictionsPage = () => {
                 }}
               >
                 {predictM.isPending
-                  ? <><Loader2 className="animate-spin" style={{ width: 18, height: 18 }} /> Calculando…</>
+                  ? <><Loader2 className="animate-spin" style={{ width: 18, height: 18 }} />
+                      {predictM.failureCount > 0 ? 'Despertando el servidor…' : 'Calculando…'}</>
                   : <><BrainCircuit style={{ width: 18, height: 18 }} /> Predecir asistencia</>}
               </button>
               <button
