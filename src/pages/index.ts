@@ -6,3 +6,4 @@ export * from './instructors';
 export * from './certificates';
 export * from './bulk';
 export * from './templates';
+export * from './predictions';
