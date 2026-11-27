@@ -15,6 +15,7 @@ import {
   CertificatesPage,
   BulkGeneratePage,
   TemplatesPage,
+  PredictionsPage,
 } from '@/pages';
 import { InvitationPage } from '@/pages/invitation/InvitationPage';
 
@@ -73,6 +74,7 @@ export const App = () => {
                 <Route path="/templates"       element={<TemplatesPage />} />
                 <Route element={<AdminRoute />}>
                   <Route path="/bulk-generate"   element={<BulkGeneratePage />} />
+                  <Route path="/predictions"     element={<PredictionsPage />} />
                 </Route>
               </Route>
             </Route>

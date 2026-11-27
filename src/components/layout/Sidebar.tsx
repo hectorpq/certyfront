@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Calendar, GraduationCap,
   Award, FileSpreadsheet, LogOut, Menu,
-  LayoutTemplate, ChevronLeft, ChevronRight,
+  LayoutTemplate, ChevronLeft, ChevronRight, BrainCircuit,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -15,6 +15,7 @@ const adminNavItems = [
     { to: '/participants', icon: Users, label: 'Participantes' },
   { to: '/events',        icon: Calendar,        label: 'Eventos'       },
   { to: '/instructors',   icon: GraduationCap,   label: 'Instructores'  },
+  { to: '/predictions',   icon: BrainCircuit,    label: 'Predicciones'  },
 ];
 
 const participanteNavItems = [
@@ -38,8 +39,8 @@ export const Sidebar = () => {
   const sidebarStyle: React.CSSProperties = {
     width: W, minWidth: W,
     display: 'flex', flexDirection: 'column', flexShrink: 0,
-    transition: 'width 300ms cubic-bezier(0.4,0,0.2,1), min-width 300ms cubic-bezier(0.4,0,0.2,1)',
-    position: 'relative',
+    transition: 'width 300ms cubic-bezier(0.4,0,0.2,1), min-width 300ms cubic-bezier(0.4,0,0.2,1), transform 300ms ease',
+    // La posicion la dan las clases: "fixed" en movil (no ocupa espacio) y "lg:relative" en escritorio.
   };
 
   /* ── Sidebar light: azul marino con degradado dorado sutil ── */
@@ -249,7 +250,7 @@ export const Sidebar = () => {
             : '4px 0 30px rgba(37,99,235,0.25)',
           borderRight: isDark ? '1px solid rgba(41,98,255,0.12)' : '1px solid rgba(255,255,255,0.06)',
         }}
-        className={`fixed lg:static inset-y-0 left-0 z-50 ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+        className={`fixed lg:relative inset-y-0 left-0 z-50 ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
